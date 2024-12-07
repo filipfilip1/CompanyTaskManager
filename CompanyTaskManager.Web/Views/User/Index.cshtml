@@ -1,0 +1,96 @@
+﻿@using CompanyTaskManager.Application.ViewModels.User
+@using CompanyTaskManager.Common.Static
+@model IEnumerable<UserViewModel>
+ 
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form method="get" asp-action="Index">
+    <input type="text" name="searchString" />
+    <input type="submit" value="Search" />
+</form>
+
+<table class="table">
+    <thead>
+         <tr>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th>Actions</th>
+         </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.UserName</td>
+                <td>@string.Join(", ", user.Roles)</td>
+                <td>
+                    @if (user.IsLockedOut)
+                    {
+                        <span class="badge bg-danger">Blocked</span>
+                    } else
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                </td>
+                <td>
+                    @if (!user.Roles.Contains(Roles.Administrator))
+                    {
+                        <a asp-action="EditRoles" asp-route-id="@user.Id" class="btn btn-primary btn-sm">Edit Roles</a>
+                        @if (user.IsLockedOut)
+                        {
+                            <a class="btn btn-success btn-sm unblockUserBtn" data-id="@user.Id">Unblock</a>
+                        } else
+                        {
+                            <a class="btn btn-danger btn-sm blockUserBtn" data-id="@user.Id">Block</a>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.blockUserBtn, .unblockUserBtn').click(function (e) {
+                e.preventDefault();
+
+                var btn = $(this);
+                var id = btn.data("id");
+                var action = btn.hasClass('blockUserBtn') ? 'BlockUser' : 'UnblockUser';
+                var actionText = action === 'BlockUser' ? 'block' : 'unblock';
+                var actionUrl = '@Url.Action("Index", "User")/' + action;
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to ' + actionText + ' this user?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, ' + actionText + '!',
+                    cancelButtonText: 'No, cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#actionForm').attr('action', actionUrl);
+                        $('#userId').val(id);
+                        $('#actionForm').submit();
+                    }
+                });
+            });
+        });
+    </script>
+
+
+    <form id="actionForm" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="userId" value="" />
+    </form>
+}

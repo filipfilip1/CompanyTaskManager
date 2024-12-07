@@ -1,0 +1,150 @@
+﻿@using CompanyTaskManager.Application.ViewModels.RoleRequest
+@model RoleRequestSummaryViewModel
+
+@{
+    ViewData["Title"] = "Requests for a role";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="row mb-4">
+    <div class="col">
+        <a href="@Url.Action("Index", new { statusId = (int?)null })" class="text-decoration-none">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="card-title text-primary">@Model.TotalRequests</h1>
+                    <h5 class="card-text">Total Requests</h5>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
+        <a href="@Url.Action("Index", new { statusId = 2 })" class="text-decoration-none">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="card-title text-success">@Model.ApprovedRequests</h1>
+                    <h5 class="card-text">Approved Requests</h5>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
+        <a href="@Url.Action("Index", new { statusId = 1 })" class="text-decoration-none">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="card-title text-warning">@Model.PendingRequests</h1>
+                    <h5 class="card-text">Pending Requests</h5>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
+        <a href="@Url.Action("Index", new { statusId = 3 })" class="text-decoration-none">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="card-title text-danger">@Model.RejectedRequests</h1>
+                    <h5 class="card-text">Rejected Requests</h5>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+@if (Model.RoleRequests.Count == 0)
+{
+    <div class="alert alert-info">
+        <h3>No requests to display.</h3>
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role Requested</th>
+                <th>Request Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model.RoleRequests)
+            {
+                var className = "";
+                switch (request.RequestStatusId)
+                {
+                    case 1: // Pending
+                        className = "warning";
+                        break;
+                    case 2: // Approved
+                        className = "success";
+                        break;
+                    case 3: // Rejected
+                        className = "danger";
+                        break;
+                    default:
+                        className = "secondary";
+                        break;
+                }
+                <tr>
+                    <td>@request.UserEmail</td>
+                    <td>@request.RequestedRole</td>
+                    <td>@request.RequestDate.ToString("g")</td>
+                    <td><span class="badge bg-@className">@request.RequestStatusName</span></td>
+                    <td>
+                        @if (request.RequestStatusId == 1) 
+                        {
+                            <button class="btn btn-success btn-sm approvalBtn" data-id="@request.Id" data-action="Approve">Approve</button>
+                            <button class="btn btn-danger btn-sm rejectionBtn" data-id="@request.Id" data-action="Reject">Reject</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<form id="actionForm" method="post" style="display:none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="requestId" value=""/>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".approvalBtn, .rejectionBtn").click(function (e) {
+                e.preventDefault();
+
+                var btn = $(this);
+                var id = btn.data("id");
+                var action = btn.data("action");
+                var actionText = action === "Approve" ? "approve" : "reject";
+
+                var actionUrl = '';
+                if (action === "Approve") {
+                    actionUrl = '@Url.Action("Approve", "RoleRequest")';
+                } else if (action === "Reject") {
+                    actionUrl = '@Url.Action("Reject", "RoleRequest")';
+                }
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to ' + actionText + ' this request?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, ' + actionText + ' it!',
+                    cancelButtonText: 'No, cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#requestId').val(id);
+                        $('#actionForm').attr('action', actionUrl + '/' + id);
+                        $('#actionForm').submit();
+                    }
+                })
+
+            });
+        })
+    </script>
+}
