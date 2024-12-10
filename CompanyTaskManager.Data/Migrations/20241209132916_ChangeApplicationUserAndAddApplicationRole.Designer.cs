@@ -4,6 +4,7 @@ using CompanyTaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyTaskManager.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241209132916_ChangeApplicationUserAndAddApplicationRole")]
+    partial class ChangeApplicationUserAndAddApplicationRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,8 +93,8 @@ namespace CompanyTaskManager.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TeamId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -119,7 +122,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "4b0b2aeb-474e-45f2-8899-e4a1536a52bf",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "634f3507-8a26-44bb-977b-39fc84db2d7a",
+                            ConcurrencyStamp = "f416e116-e0ee-4701-b9cf-f734d7d5176b",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -127,9 +130,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIwEowfTezIiOD8uUPFl4VfxDW3sUmM6jrzy7uUyyiNZ51xWI9/M6U/EDppYCYZBHQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAgLUNQCEhfxT+VkasSeCYhR9oVcUEBY58QGJrUa/8gfPorhQEWriUFIttCbGD5IIQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d041a523-dcfb-430c-93d0-5b3231a994ee",
+                            SecurityStamp = "84c68395-9ca6-403e-be37-aab74fab7a52",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -195,16 +198,6 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = 2,
                             Name = "Role Request Rejected"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Added To Team"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Removed From Team"
                         });
                 });
 
@@ -286,8 +279,11 @@ namespace CompanyTaskManager.Data.Migrations
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.Team", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ManagerId")
                         .IsRequired()

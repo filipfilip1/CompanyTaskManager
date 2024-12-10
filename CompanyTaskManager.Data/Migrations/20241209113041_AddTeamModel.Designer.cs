@@ -4,6 +4,7 @@ using CompanyTaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyTaskManager.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241209113041_AddTeamModel")]
+    partial class AddTeamModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace CompanyTaskManager.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ApplicationRoleApplicationUser", b =>
-                {
-                    b.Property<string>("RolesId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("RolesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("ApplicationRoleApplicationUser");
-                });
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationUser", b =>
                 {
@@ -90,8 +78,8 @@ namespace CompanyTaskManager.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TeamId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -119,7 +107,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "4b0b2aeb-474e-45f2-8899-e4a1536a52bf",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "634f3507-8a26-44bb-977b-39fc84db2d7a",
+                            ConcurrencyStamp = "1df705f0-fd0b-4758-abd0-acb94fae6a5a",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -127,9 +115,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIwEowfTezIiOD8uUPFl4VfxDW3sUmM6jrzy7uUyyiNZ51xWI9/M6U/EDppYCYZBHQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAANr1Hg7KX2ft1cYyvwLgNL/EhGx54wtryOrGEccBYbksISi8cxGjzaWNfOa5ytrg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d041a523-dcfb-430c-93d0-5b3231a994ee",
+                            SecurityStamp = "aa587995-df35-461b-8168-229685a7648c",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -195,16 +183,6 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = 2,
                             Name = "Role Request Rejected"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Added To Team"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Removed From Team"
                         });
                 });
 
@@ -286,8 +264,11 @@ namespace CompanyTaskManager.Data.Migrations
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.Team", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ManagerId")
                         .IsRequired()
@@ -313,11 +294,6 @@ namespace CompanyTaskManager.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("nvarchar(21)");
-
                     b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -334,10 +310,6 @@ namespace CompanyTaskManager.Data.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasDiscriminator().HasValue("IdentityRole");
-
-                    b.UseTphMappingStrategy();
 
                     b.HasData(
                         new
@@ -477,36 +449,11 @@ namespace CompanyTaskManager.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationRole", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole");
-
-                    b.HasDiscriminator().HasValue("ApplicationRole");
-                });
-
-            modelBuilder.Entity("ApplicationRoleApplicationUser", b =>
-                {
-                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationRole", null)
-                        .WithMany()
-                        .HasForeignKey("RolesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("CompanyTaskManager.Data.Models.Team", "Team")
+                    b.HasOne("CompanyTaskManager.Data.Models.Team", null)
                         .WithMany("Members")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Team");
+                        .HasForeignKey("TeamId");
                 });
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.Notification", b =>
@@ -552,7 +499,7 @@ namespace CompanyTaskManager.Data.Migrations
                     b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", "Manager")
                         .WithMany()
                         .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Manager");

@@ -20,6 +20,16 @@ public class NotificationTypeConfiguration : IEntityTypeConfiguration<Notificati
             {
                 Id = 2,
                 Name = "Role Request Rejected"
+            },
+            new NotificationType
+            {
+                Id = 3,
+                Name = "Added To Team"
+            },
+            new NotificationType
+            {
+                Id = 4,
+                Name = "Removed From Team"
             }
             );
     }

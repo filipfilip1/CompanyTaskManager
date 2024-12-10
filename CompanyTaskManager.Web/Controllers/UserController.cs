@@ -1,4 +1,4 @@
-﻿using CompanyTaskManager.Application.Services.UserServices;
+﻿using CompanyTaskManager.Application.Services.Users;
 using CompanyTaskManager.Common.Static;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

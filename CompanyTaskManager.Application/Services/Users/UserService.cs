@@ -8,7 +8,7 @@ using CompanyTaskManager.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace CompanyTaskManager.Application.Services.UserServices;
+namespace CompanyTaskManager.Application.Services.Users;
 
 public class UserService(UserManager<ApplicationUser> _userManager,
     IMapper _mapper) : IUserService

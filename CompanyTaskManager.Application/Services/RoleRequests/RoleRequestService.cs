@@ -1,6 +1,8 @@
 ﻿
 
 using AutoMapper;
+using CompanyTaskManager.Application.Services.Notifications;
+using CompanyTaskManager.Application.Services.Teams;
 using CompanyTaskManager.Application.ViewModels.RoleRequest;
 using CompanyTaskManager.Data;
 using CompanyTaskManager.Data.Models;
@@ -11,7 +13,9 @@ namespace CompanyTaskManager.Application.Services.RoleRequests;
 
 public class RoleRequestService(ApplicationDbContext _context,
     UserManager<ApplicationUser> _userManager,
-    IMapper _mapper) : IRoleRequestsService
+    IMapper _mapper,
+    INotificationService _notificationService,
+    ITeamService _teamService) : IRoleRequestsService
 {
 
 
@@ -40,15 +44,32 @@ public class RoleRequestService(ApplicationDbContext _context,
         if (user == null)
             throw new Exception("User not found");
 
-        var result = await _userManager.AddToRoleAsync(user, roleRequest.RequestedRole);
-        if (!result.Succeeded)
-            throw new Exception("Failed to add role to user");
+        try
+        {
+            var result = await _userManager.AddToRoleAsync(user, roleRequest.RequestedRole);
+            if (!result.Succeeded)
+                throw new Exception("Failed to add role to user");
+
+            if (roleRequest.RequestedRole == "Manager")
+            {
+                var teamName = $"{user.FirstName}'s Team";
+                await _teamService.CreateTeamAsync(user.Id, teamName);
+            }
+        } catch (Exception ex)
+        {
+            throw new Exception("Failed to add manager role to user or create a team");
+        }
+
+
 
         roleRequest.IsApproved = true;
         roleRequest.ApprovalDate = DateTime.Now;
         roleRequest.RequestStatusId = 2; // Approved
 
         _context.Update(roleRequest);
+
+        await _notificationService.CreateNotificationAsync(roleRequest.UserId, "Your role request has been approved", 1);
+
         await _context.SaveChangesAsync();
         
     }
@@ -75,6 +96,9 @@ public class RoleRequestService(ApplicationDbContext _context,
         roleRequest.RequestStatusId = 3; // Rejected
 
         _context.Update(roleRequest);
+
+        await _notificationService.CreateNotificationAsync(roleRequest.UserId, "Your role request has been rejected", 2);
+
         await _context.SaveChangesAsync();
     }
 

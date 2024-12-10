@@ -2,7 +2,7 @@
 
 using CompanyTaskManager.Application.ViewModels.User;
 
-namespace CompanyTaskManager.Application.Services.UserServices;
+namespace CompanyTaskManager.Application.Services.Users;
 
 public interface IUserService
 {

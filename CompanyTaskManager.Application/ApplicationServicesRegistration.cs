@@ -1,7 +1,9 @@
 ﻿
 
+using CompanyTaskManager.Application.Services.Notifications;
 using CompanyTaskManager.Application.Services.RoleRequests;
-using CompanyTaskManager.Application.Services.UserServices;
+using CompanyTaskManager.Application.Services.Teams;
+using CompanyTaskManager.Application.Services.Users;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -14,6 +16,8 @@ public static class ApplicationServicesRegistration
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
         services.AddScoped<IRoleRequestsService, RoleRequestService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ITeamService, TeamService>();
 
         return services;
     }

@@ -1,0 +1,71 @@
+﻿@using CompanyTaskManager.Application.ViewModels.Team
+@model AddTeamMemberViewModel
+
+@{
+    ViewData["Title"] = "Add Team Member";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!Model.AvailableUsers.Any())
+{
+    <p>There are no users available to add to your team.</p>
+}
+else {
+    <table>
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var user in Model.AvailableUsers)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm addMemberBtn" data-id="@user.Id" data-action="Add">Add</button>
+                    </td>
+                </tr>
+            })
+        </tbody>
+    </table>
+
+    <form id="actionForm" method="post" style="display:none">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="userId" id="userId" value=""/>
+    </form>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".addMemberBtn").click(function (e) {
+                e.preventDefault();
+
+                var btn = $(this);
+                var id = btn.data("id")
+                var action = btn.data("action");
+
+                var actionUrl = '@Url.Action("AddMember", "Team")';
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to add this user to your team?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, add!',
+                    cancelButtonText: 'No, cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#userId').val(id);
+                        $('#actionForm').attr('action', actionUrl + '/' + id);
+                        $('#actionForm').submit();
+                    }
+                })
+            });
+        })
+    </script>
+}

@@ -1,0 +1,36 @@
+﻿@using CompanyTaskManager.Application.ViewModels.Notification
+@model IEnumerable<NotificationViewModel>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!Model.Any())
+{
+    <p>You don't have any notifications</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var notification in Model)
+        {
+            
+            var itemClass = notification.IsRead ? "text-muted" : "fw-bold";
+
+            <li class="list-group-item @itemClass">
+                <div>
+                    @notification.Message
+                    <span class="text-muted">(@notification.CreatedAt.ToString("g"))</span>
+                </div>
+                @if (!notification.IsRead)
+                {
+                    <form method="post" asp-action="MarkAsRead" asp-route-id="@notification.Id">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link">Mark as Read</button>
+                    </form>
+                }
+            </li>
+        }
+    </ul>
+}
