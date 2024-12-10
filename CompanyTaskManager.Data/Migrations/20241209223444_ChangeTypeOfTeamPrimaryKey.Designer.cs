@@ -4,6 +4,7 @@ using CompanyTaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyTaskManager.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241209223444_ChangeTypeOfTeamPrimaryKey")]
+    partial class ChangeTypeOfTeamPrimaryKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,7 +122,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "4b0b2aeb-474e-45f2-8899-e4a1536a52bf",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "634f3507-8a26-44bb-977b-39fc84db2d7a",
+                            ConcurrencyStamp = "9ca6c813-a038-4788-96c1-0be9ab77022f",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -127,9 +130,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIwEowfTezIiOD8uUPFl4VfxDW3sUmM6jrzy7uUyyiNZ51xWI9/M6U/EDppYCYZBHQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDmjrHURWfBm+t+Et0gXcCj+VecMn14UJZHVffoUEJDQCvuVZtBAzcPdtp/bUycwyQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d041a523-dcfb-430c-93d0-5b3231a994ee",
+                            SecurityStamp = "6241e042-12bc-41cc-a4b0-55ac557b0484",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -195,16 +198,6 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = 2,
                             Name = "Role Request Rejected"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Added To Team"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Removed From Team"
                         });
                 });
 

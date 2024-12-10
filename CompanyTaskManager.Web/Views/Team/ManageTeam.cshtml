@@ -1,0 +1,72 @@
+﻿@using CompanyTaskManager.Application.ViewModels.Team
+@model ManageTeamViewModel
+
+@{
+    ViewData["Title"] = "Manage Your Team";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!Model.TeamMembers.Any())
+{
+    <p>You currently have no team members</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var teamMember in Model.TeamMembers)
+            {
+                <tr>
+                    <td>@teamMember.Email</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm removeMemberBtn" data-id="@teamMember.Id" data-action="Remove">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <form id="actionForm" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="userId" id="userId" value="" />
+    </form>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".removeMemberBtn").click(function (e) {
+                e.preventDefault();
+
+                var btn = $(this);
+                var id = btn.data("id");
+                var action = btn.data("action"); 
+
+                var actionUrl = '@Url.Action("RemoveMember", "Team")';
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you really want to remove this user from your team?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, remove!',
+                    cancelButtonText: 'No, cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#userId').val(id);
+                        $('#actionForm').attr('action', actionUrl);
+                        $('#actionForm').submit();
+                    }
+                })
+            });
+        })
+    </script>
+}
