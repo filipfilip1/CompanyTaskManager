@@ -1,0 +1,170 @@
+﻿@using CompanyTaskManager.Common.Static
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<div class="container mt-4">
+
+
+    <div class="card border-1 shadow-sm mx-auto" style="max-width: 1000px">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="badge bg-primary">&nbsp;</span> <span>Projects</span>
+                        <span class="badge bg-warning">&nbsp;</span> <span>Tasks</span>
+                        <span class="badge bg-success">&nbsp;</span> <span>Project Tasks</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+
+    <style>
+        /* Custom CSS style for full calendar */
+
+        .fc-toolbar-title {
+            font-weight: bold;
+            color: #222; 
+        }
+
+        .fc-col-header-cell a {
+            text-decoration: none !important;
+        }
+
+        .fc-daygrid-day-frame {
+            height: 120px; 
+        }
+
+        .fc-daygrid-day-events {
+            margin: 2px;
+        }
+
+        .fc-event {
+            margin: 1px 0 !important;
+            cursor: pointer !important;
+        }
+
+        .fc-daygrid-day-number {
+            font-weight: bold;
+            color: #3174ad; 
+            text-decoration: none;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            
+            // URL to fetch events
+            var baseEventsUrl = '@Url.Action("GetCalendarEvents", "Calendar")';
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                fixedWeekCount: false,
+                dayMaxEventRows: 3,
+                events: {
+                    url: baseEventsUrl,
+                    method: 'GET'
+                },
+                eventClassNames: function (arg) {
+                    // Bootstrap classes based on types
+                    if (arg.event.extendedProps.type === 'project') {
+                        return ['badge', 'bg-primary', 'text-white'];
+                    } else if (arg.event.extendedProps.type === 'task') {
+                        return ['badge', 'bg-warning', 'text-dark'];
+                    } else if (arg.event.extendedProps.type === 'projectTask') {
+                        return ['badge', 'bg-success', 'text-white'];
+                    }
+                },
+                eventContent: function (arg) {
+                    // Custom content from Bootstrap
+                    var typeLabel = '';
+                    if (arg.event.extendedProps.type === 'project') {
+                        typeLabel = 'P';
+                    } else if (arg.event.extendedProps.type === 'task') {
+                        typeLabel = 'T';
+                    } else if (arg.event.extendedProps.type === 'projectTask') {
+                        typeLabel = 'PT';
+                    }
+
+                    // Truncating titles that are too long
+                    var title = arg.event.title.length > 15
+                        ? arg.event.title.substring(0, 15) + '...'
+                        : arg.event.title;
+
+                    return {
+                        html: `
+                            <div class="d-flex align-items-center p-1">
+                                <span class="badge me-1 ${arg.event.extendedProps.type === 'project'
+                                ? 'bg-primary'
+                                : arg.event.extendedProps.type === 'task'
+                                    ? 'bg-warning'
+                                    : 'bg-success'}">
+                                    ${typeLabel}
+                                </span>
+                                <span class="small">${title}</span>
+                            </div>
+                        `
+                    };
+                },
+                eventDidMount: function (arg) {
+                    new bootstrap.Tooltip(arg.el, {
+                        title: `${arg.event.extendedProps.type}: ${arg.event.title}`,
+                        placement: 'top',
+                        trigger: 'hover'
+                    });
+                },
+
+                eventClick: function (info) {
+                    var isManager = @Json.Serialize(User.IsInRole(Roles.Manager));
+                    var isEmployee = @Json.Serialize(User.IsInRole(Roles.Employee));
+
+                    if (info.event.id.startsWith('PT')) {
+                        var projectTaskId = info.event.id.substring(2);
+                        var isLeader = info.event.extendedProps.isLeader;
+
+                        if (isLeader) {
+                            window.location.href = '@Url.Action("LeaderTaskDetails", "ProjectTask")'
+                                + "?taskId=" + projectTaskId;
+                        } else {
+                            window.location.href = '@Url.Action("EmployeeTaskDetails", "ProjectTask")'
+                                + "?taskId=" + projectTaskId;
+                        }        
+                    }                  
+                    else if (info.event.id.startsWith('T')) {
+                        var taskId = info.event.id.substring(1);
+
+                        if (isManager) {
+                            window.location.href = '@Url.Action("ManagerTaskDetails", "StandaloneTask")'
+                                + "?taskId=" + taskId;
+                        } else if (isEmployee) {
+                            window.location.href = '@Url.Action("EmployeeTaskDetails", "StandaloneTask")'
+                                + "?taskId=" + taskId;
+                        }
+                    } 
+                    else if
+                        (info.event.id.startsWith('P')) {
+                        var projectId = info.event.id.substring(1);
+
+                        window.location.href = '@Url.Action("Details", "Project")'
+                            + "/" + projectId;
+                    }  
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+}

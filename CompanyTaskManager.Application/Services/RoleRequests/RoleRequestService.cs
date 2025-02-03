@@ -55,7 +55,7 @@ public class RoleRequestService(ApplicationDbContext _context,
                 var teamName = $"{user.FirstName}'s Team";
                 await _teamService.CreateTeamAsync(user.Id, teamName);
             }
-        } catch (Exception ex)
+        } catch 
         {
             throw new Exception("Failed to add manager role to user or create a team");
         }

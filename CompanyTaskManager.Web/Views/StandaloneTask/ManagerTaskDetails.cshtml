@@ -1,0 +1,134 @@
+﻿@using CompanyTaskManager.Application.ViewModels.TaskItem
+@model ManagerTaskDetailsViewModel
+
+@{
+    ViewData["Title"] = "Manager Task Details";
+}
+
+<div class="container mt-4">
+    <h2 class="text-dark fw-bold ms-3">@Model.Title</h2>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light text-dark border-bottom">
+            <h5 class="mb-0">Task Details</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-secondary">Description</dt>
+                <dd class="col-sm-8 text-muted">@Model.Description</dd>
+
+                <dt class="col-sm-4 text-secondary">Assigned To</dt>
+                <dd class="col-sm-8">
+                    <span class="fw-bold text-info">@Model.AssignedUserName</span>
+                </dd>
+
+                <dt class="col-sm-4 text-secondary">Status</dt>
+                <dd class="col-sm-8">
+                    @if (Model.WorkStatusName == "Completed")
+                    {
+                        <span class="badge bg-primary text-white">Completed</span>
+                    }
+                    else if (Model.WorkStatusName == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary text-white">@Model.WorkStatusName</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-4 text-secondary">Dates</dt>
+                <dd class="col-sm-8">
+                    <span class="fw-bold text-info">@Model.StartDate.ToShortDateString()</span> -
+                    <span class="fw-bold text-info">@Model.EndDate.ToShortDateString()</span>
+                </dd>
+
+                <dt class="col-sm-4 text-secondary">Submission Text</dt>
+                <dd class="col-sm-8">
+                    @if (string.IsNullOrEmpty(Model.SubmissionText))
+                    {
+                        <span class="text-muted">None</span>
+                    }
+                    else
+                    {
+                        <span class="text-dark">@Model.SubmissionText</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+
+    </div>
+    @if (Model.IsOverdue)
+    {
+        <div class="alert alert-danger fw-bold">
+            This project is overdue!
+        </div>
+    }
+
+    @if (Model.CanApproveOrReject)
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light text-dark border-bottom">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <form id="approveForm" method="post" asp-action="Approve" asp-route-taskId="@Model.Id" style="display:inline">
+                    @Html.AntiForgeryToken()
+                    <button type="button" id="approveBtn" class="btn btn-success me-2">Approve</button>
+                </form>
+
+                <form id="rejectForm" method="post" asp-action="Reject" asp-route-taskId="@Model.Id" style="display:inline">
+                    @Html.AntiForgeryToken()
+                    <button type="button" id="rejectBtn" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="text-end">
+        <a asp-action="ManagerTasks" class="btn btn-secondary">Back to Task List</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Approve Button
+            $('#approveBtn').click(function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you want to approve this task?',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, approve it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#approveForm').submit();
+                    }
+                });
+            });
+
+            // Reject Button
+            $('#rejectBtn').click(function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you want to reject this task?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, reject it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#rejectForm').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

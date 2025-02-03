@@ -1,0 +1,124 @@
+﻿@using CompanyTaskManager.Application.ViewModels.TaskItem
+@model List<ManagerTaskItemViewModel>
+
+@{
+    ViewData["Title"] = "Manager - Standalone Tasks";
+    string? statusFilter = Context.Request.Query["statusFilter"];
+
+    var statuses = ViewBag.Statuses;
+}
+
+<div class="container mt-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Manager - Standalone Tasks</h4>
+        </div>
+        <div class="card-body">
+            <!-- Filter Section -->
+            <form method="get" class="row g-3 align-items-center mb-4">
+                <!-- Status Filter -->
+                <div class="col-md-3">
+                    <select name="statusFilter" class="form-select" id="statusFilter">
+                        <option value="">-- Filter by status --</option>
+                        @if (statuses != null)
+                        {
+                            foreach (string st in statuses)
+                            {
+                                bool isSelected = (statusFilter == st);
+                                <option value="@st" selected="@isSelected">@st</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Assigned User Filter -->
+                <div class="col-md-3">
+                    <input type="text" name="assignedUser" class="form-control" id="assignedUserFilter"
+                           placeholder="Filter by user name"
+                           value="@Context.Request.Query["assignedUser"]" />
+                </div>
+
+                <!-- Overdue Filter -->
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               name="showOnlyOverdue"
+                               value="true"
+                               id="showOnlyOverdue"
+                        @(Context.Request.Query["showOnlyOverdue"] == "true" ? "checked" : "") />
+                        <label class="form-check-label ms-2" for="showOnlyOverdue">
+                            Show only overdue
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Filter Button -->
+                <div class="col-md-3">
+                    <div class="d-flex ">
+                        <button type="submit" class="btn btn-primary ">Filter</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+            <!-- Tasks Table -->
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    No standalone tasks found.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Title</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th>Deadline</th>
+                                <th>Notes</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var task in Model)
+                            {
+                                string rowClass = task.IsOverdue ? "table-danger" : "";
+
+                                <tr class="@rowClass">
+                                    <td>@task.Title</td>
+                                    <td>@task.AssignedUserName</td>
+                                    <td>@task.WorkStatusName</td>
+                                    <td>@task.EndDate.ToShortDateString()</td>
+                                    <td>
+                                        @if (task.IsOverdue)
+                                        {
+                                            <span class="text-danger fw-bold">Overdue</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">On Time</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-action="ManagerTaskDetails" asp-route-taskId="@task.Id"
+                                           class="btn btn-sm btn-info">Details</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+        <div class="card-footer text-end">
+            <a asp-action="Create" class="btn btn-primary">Create New Task</a>
+        </div>
+    </div>
+</div>

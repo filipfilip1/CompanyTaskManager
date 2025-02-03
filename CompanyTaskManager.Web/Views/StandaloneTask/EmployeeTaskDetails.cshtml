@@ -1,0 +1,108 @@
+﻿@using CompanyTaskManager.Application.ViewModels.TaskItem
+@using CompanyTaskManager.Common.Static
+@model StandaloneTaskItemViewModel
+
+@{
+    ViewData["Title"] = "Task Details (Employee)";
+}
+<div class="container mt-4">
+    <h2 class="text-dark ms-3">@Model.Title</h2>
+
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light text-dark border-bottom">
+            <h5 class="mb-0">Standalone Task Details</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-secondary">Description</dt>
+                <dd class="col-sm-8 text-muted">@Model.Description</dd>
+
+                <dt class="col-sm-4 text-secondary">Status</dt>
+                <dd class="col-sm-8">
+                    @if (Model.WorkStatusName == "Completed")
+                    {
+                        <span class="badge bg-primary text-white">Completed</span>
+                    }
+                    else if (Model.WorkStatusName == "Pending")
+                    {
+                        <span class="badge bg-light text-primary border border-primary">Pending</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary text-white">@Model.WorkStatusName</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-4 text-secondary">Dates</dt>
+                <dd class="col-sm-8">
+                    <span class="fw-bold text-info">@Model.StartDate.ToShortDateString()</span> -
+                    <span class="fw-bold text-info">@Model.EndDate.ToShortDateString()</span>
+                </dd>
+
+                <dt class="col-sm-4 text-secondary">Submission Text</dt>
+                <dd class="col-sm-8">
+                    @if (string.IsNullOrEmpty(Model.SubmissionText))
+                    {
+                        <span class="text-muted">No submission</span>
+                    }
+                    else
+                    {
+                        <span class="text-dark">@Model.SubmissionText</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+    </div>
+    @if (Model.IsOverdue)
+    {
+        <div class="alert alert-danger fw-bold mt-3">
+            This Task is overdue!
+        </div>
+    }
+
+</div>
+
+
+<hr />
+
+@if (Model.CanSendForApproval)
+{
+    <form id="sendForApprovalForm" method="post" asp-action="SendForApproval" asp-route-taskId="@Model.Id" class="p-3 rounded border bg-light mb-3">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label for="submissionText" class="form-label">Submission Text</label>
+            <textarea name="submissionText" class="form-control" rows="3">@Model.SubmissionText</textarea>
+        </div>
+        <button type="button" id="sendForApprovalBtn" class="btn btn-success btn-sm">Send for Approval</button>
+    </form>
+}
+
+<div>
+    <a asp-action="Index" asp-controller="Project" asp-route-projectId="@Model.Id" class="btn btn-secondary btn-sm">
+        Back to My Project Tasks
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#sendForApprovalBtn').click(function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you want to send this task for approval?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, send it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#sendForApprovalForm').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

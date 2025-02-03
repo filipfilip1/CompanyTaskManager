@@ -17,4 +17,8 @@
     <ProjectReference Include="..\CompanyTaskManager.Common\CompanyTaskManager.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

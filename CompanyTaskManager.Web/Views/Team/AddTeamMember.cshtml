@@ -5,39 +5,55 @@
     ViewData["Title"] = "Add Team Member";
 }
 
-<h2>@ViewData["Title"]</h2>
-
-@if (!Model.AvailableUsers.Any())
-{
-    <p>There are no users available to add to your team.</p>
-}
-else {
-    <table>
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach(var user in Model.AvailableUsers)
+<div class="container mt-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">@ViewData["Title"]</h4>
+        </div>
+        <div class="card-body">
+            @if (!Model.AvailableUsers.Any())
             {
-                <tr>
-                    <td>@user.Email</td>
-                    <td>
-                        <button type="button" class="btn btn-primary btn-sm addMemberBtn" data-id="@user.Id" data-action="Add">Add</button>
-                    </td>
-                </tr>
-            })
-        </tbody>
-    </table>
+                <div class="alert alert-warning text-center">
+                    There are no users available to add to your team.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Email</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.AvailableUsers)
+                            {
+                                <tr>
+                                    <td>@user.Email</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-primary btn-sm addMemberBtn"
+                                                data-id="@user.Id" 
+                                                data-action="Add"
+                                                data-email="@user.Email">
+                                            Add
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
 
-    <form id="actionForm" method="post" style="display:none">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="userId" id="userId" value=""/>
-    </form>
-}
-
+                <form id="actionForm" method="post" style="display:none;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" id="userId" value="" />
+                </form>
+            }
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script>
         $(document).ready(function () {
@@ -46,13 +62,14 @@ else {
 
                 var btn = $(this);
                 var id = btn.data("id")
+                var email = btn.data("email")
                 var action = btn.data("action");
 
                 var actionUrl = '@Url.Action("AddMember", "Team")';
 
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: 'Do you really want to add this user to your team?',
+                    text: `Do you really want to add ${email} to your team?`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, add!',

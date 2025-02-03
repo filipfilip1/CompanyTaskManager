@@ -1,0 +1,233 @@
+﻿@using CompanyTaskManager.Application.ViewModels.Project
+@using CompanyTaskManager.Application.ViewModels.TaskItem
+@using System.Security.Claims
+@using CompanyTaskManager.Common.Static
+@model ProjectDetailsViewModel
+
+@{
+    ViewData["Title"] = "Project Details";
+}
+
+<div class="container mt-4">
+    <h2 class="text-dark">@Model.Name</h2>
+    <p class="lead">
+        <strong>Status:</strong> <span class="badge bg-info">@Model.WorkStatusName</span><br />
+        <strong>Leader:</strong> <span class="text-secondary fw-bold">@Model.LeaderName</span> <br />
+        <strong>Manager:</strong> <span class="text-secondary fw-bold">@Model.ManagerName</span> <br />
+        <strong>Dates:</strong>
+        <span class="fw-bold text-secondary">@Model.StartDate.ToShortDateString()</span> -
+        <span class="fw-bold text-secondary">@Model.EndDate.ToShortDateString()</span>
+    </p>
+    @if (Model.IsOverdue)
+    {
+        <div class="alert alert-danger fw-bold">
+            This project is overdue!
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light text-dark border-bottom">
+            <h5 class="mb-0">Project Members</h5>
+        </div>
+        <div class="card-body">
+            @if (!Model.Members.Any())
+            {
+                <div class="alert alert-secondary">No members in this project.</div>
+            }
+            else
+            {
+                <ul class="list-unstyled">
+                    @foreach (var member in Model.Members)
+                    {
+                        <li>
+                            <span class="fw-bold">@member.UserName</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light text-dark border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Tasks in this Project</h5>
+            @if (Model.ManagerId == Model.CurrentUserId && !Model.IsCompleted)
+            {
+                <a class="btn btn-success btn-sm"
+                   asp-controller="ProjectTask"
+                   asp-action="Create"
+                   asp-route-projectId="@Model.Id">
+                    Add Task
+                </a>
+            }
+        </div>
+        <div class="card-body">
+            @if (Model.Tasks == null || !Model.Tasks.Any())
+            {
+                <div class="alert alert-secondary">No tasks yet.</div>
+            }
+            else
+            {
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Assigned User</th>
+                            <th>Status</th>
+                            <th>Dates</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in Model.Tasks)
+                        {
+                            string rowClass = "";
+                            if (task.IsCompleted)
+                            {
+                                rowClass = "table-success";
+                            } else if (task.WorkStatusName == WorkStatusesName.Rejected)
+                            {
+                                rowClass = "table-danger";
+                            }
+                            <tr class="@rowClass">
+                                <td>@task.Title</td>
+                                <td>@task.AssignedUserName</td>
+                                <td>
+                                    @if (task.IsCompleted)
+                                    {
+                                        <span class="badge bg-primary">Completed</span>
+                                    }
+                                    else if (task.WorkStatusName == WorkStatusesName.CompletionPending)
+                                    {
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@task.WorkStatusName</span>
+                                    }
+                                </td>
+                                <td>@task.StartDate.ToShortDateString() - @task.EndDate.ToShortDateString()</td>
+                                <td>
+                                    @if (Model.LeaderId == Model.CurrentUserId)
+                                    {
+                                        <!-- Link to leader view-->
+                                        <a asp-controller="ProjectTask" asp-action="LeaderTaskDetails" asp-route-taskId="@task.Id"
+                                           class="btn btn-sm btn-info">Details</a>
+
+                                        @if (task.WorkStatusName == WorkStatusesName.CompletionPending && !Model.IsOverdue)
+                                        {
+                                            <form method="post" asp-controller="ProjectTask" asp-action="Approve" asp-route-taskId="@task.Id" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-primary">Approve</button>
+                                            </form>
+                                            <form method="post" asp-controller="ProjectTask" asp-action="Reject" asp-route-taskId="@task.Id" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                            </form>
+                                        }
+                                    }
+
+                                    @if (task.AssignedUserId == Model.CurrentUserId)
+                                    {
+                                        <!-- Link to employee view -->
+                                        <a asp-controller="ProjectTask" asp-action="EmployeeTaskDetails" asp-route-taskId="@task.Id"
+                                           class="btn btn-sm btn-info">Details</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+
+    <!-- Project actions -->
+    @if (Model.CanRequestProjectCompletion)
+    {
+        <form id="requestCompletionForm" method="post" asp-action="RequestCompletion" asp-route-projectId="@Model.Id" style="display:inline">
+            @Html.AntiForgeryToken()
+            <button type="button" id="requestCompletionBtn" class="btn btn-warning">Request Completion</button>
+        </form>
+    }
+    @if (Model.CanCompleteProject)
+    {
+        <form id="completeProjectForm" method="post" asp-action="ApproveProject" asp-route-projectId="@Model.Id" style="display:inline">
+            @Html.AntiForgeryToken()
+            <button type="button" id="completeProjectBtn" class="btn btn-success">Complete</button>
+        </form>
+    }
+    @if (Model.CanRejectProject)
+    {
+        <form id="rejectCompletionForm" method="post" asp-action="RejectCompletion" asp-route-projectId="@Model.Id" style="display:inline">
+            @Html.AntiForgeryToken()
+            <button type="button" id="rejectCompletionBtn" class="btn btn-danger">Reject</button>
+        </form>
+    }
+
+
+    <div class="text-end">
+        <a class="btn btn-secondary" asp-action="Index">Back to list</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Request Completion
+            $('#requestCompletionBtn').click(function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Request Completion?',
+                    text: 'Are you sure you want to request completion for this project?',
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, request it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#requestCompletionForm').submit();
+                    }
+                });
+            });
+
+            // Complete Project
+            $('#completeProjectBtn').click(function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Complete Project?',
+                    text: 'Are you sure you want to mark this project as completed?',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, complete it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#completeProjectForm').submit();
+                    }
+                });
+            });
+
+            // Reject Completion
+            $('#rejectCompletionBtn').click(function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Reject Completion?',
+                    text: 'Are you sure you want to reject the completion of this project?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, reject it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#rejectCompletionForm').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}
