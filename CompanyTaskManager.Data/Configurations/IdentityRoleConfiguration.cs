@@ -1,6 +1,5 @@
-﻿
-
-using CompanyTaskManager.Common.Static;
+﻿using CompanyTaskManager.Common.Static;
+using CompanyTaskManager.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

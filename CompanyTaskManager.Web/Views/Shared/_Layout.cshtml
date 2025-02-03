@@ -3,10 +3,6 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,74 +15,126 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CompanyTaskManager.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+            <div class="container">
+                <!-- Logo -->
+                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                    Company Task Manager
+                </a>
+
+                <!-- Navigation Links -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- Administrator Section -->
                         @if (SignInManager.IsSignedIn(User) && User.IsInRole(Roles.Administrator))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="RoleRequest" asp-action="Index">Role Requests</a>
+                                <a class="nav-link" asp-controller="RoleRequest" asp-action="Index">Role Requests</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="User" asp-action="Index">Manage Users</a>
+                                <a class="nav-link" asp-controller="User" asp-action="Index">Manage Users</a>
                             </li>
                         }
+
+                        <!-- Section for logged-in users -->
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Notification" asp-action="Index">
-                                    Notifications
-                                    @await Component.InvokeAsync("Notification")
+                                <a class="nav-link" asp-controller="Notification" asp-action="Index">
+                                    Notifications @await Component.InvokeAsync("Notification")
                                 </a>
                             </li>
-                        }
-                        @if (SignInManager.IsSignedIn(User) && User.IsInRole(Roles.Manager))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" id="teamDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    My Team
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="teamDropdown">
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Team" asp-action="ManageTeam">Your Team</a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Team" asp-action="AddTeamMember">Add Team Member</a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
 
+                            @if(!User.IsInRole(Roles.Administrator)){
+                                <!-- Calendar-->
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Calendar" asp-action="Index">Calendar</a>
+                                </li>
+                                <!-- Tasks -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="taskDropdown" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">Tasks</a>
+                                    <ul class="dropdown-menu" aria-labelledby="taskDropdown">
+                                        @if (User.IsInRole(Roles.Manager))
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="StandaloneTask" asp-action="ManagerTasks">Manager Tasks</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="StandaloneTask" asp-action="MyTasks">My Standalone Tasks</a>
+                                            </li>
+                                        }
 
+                                        <!-- Create Standalone Task -->
+                                        @if (User.IsInRole(Roles.Manager))
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="StandaloneTask" asp-action="Create">Create Standalone Task</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+
+                                <!-- Projects -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="projectDropdown" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">Projects</a>
+                                    <ul class="dropdown-menu" aria-labelledby="projectDropdown">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Project" asp-action="Index">My Projects</a>
+                                        </li>
+                                        @if (User.IsInRole(Roles.Manager))
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Project" asp-action="Create">Create Project</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+
+                                <!-- Team -->
+                                @if (User.IsInRole(Roles.Manager))
+                                {
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" id="teamDropdown" role="button"
+                                           data-bs-toggle="dropdown" aria-expanded="false">My Team</a>
+                                        <ul class="dropdown-menu" aria-labelledby="teamDropdown">
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Team" asp-action="ManageTeam">Your Team</a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Team" asp-action="AddTeamMember">Add Team Member</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                }
+                            }
+                           
+                        }
                     </ul>
+                    <!-- Login Partial -->
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
+
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="bg-light text-center text-muted border-top footer ">
         <div class="container">
-            &copy; 2024 - CompanyTaskManager.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2024 - Company Task Manager
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

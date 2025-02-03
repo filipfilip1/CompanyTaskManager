@@ -22,21 +22,6 @@ namespace CompanyTaskManager.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ApplicationRoleApplicationUser", b =>
-                {
-                    b.Property<string>("RolesId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("RolesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("ApplicationRoleApplicationUser");
-                });
-
             modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -119,7 +104,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "4b0b2aeb-474e-45f2-8899-e4a1536a52bf",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "634f3507-8a26-44bb-977b-39fc84db2d7a",
+                            ConcurrencyStamp = "6823557d-5944-4443-bd4a-928366b87306",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -127,9 +112,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIwEowfTezIiOD8uUPFl4VfxDW3sUmM6jrzy7uUyyiNZ51xWI9/M6U/EDppYCYZBHQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFsi/qGKQuujRWdUIf3hGcPdHm9zUVT0nDoH6Dplh7N++45rz6g2zDXSkVdO/z/RFw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d041a523-dcfb-430c-93d0-5b3231a994ee",
+                            SecurityStamp = "916cd898-b8df-4fb3-913e-23c258ff9a48",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -205,7 +190,126 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = 4,
                             Name = "Removed From Team"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Added As Project Leader"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Added To Task"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "Added To Project"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "Project Waiting For Approve"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Name = "Project Completion Approve"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Name = "Project Completion Rejected"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Name = "Task Waiting For Approve"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Name = "Task Completion Approve"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Name = "Task Completion Rejected"
                         });
+                });
+
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.Project", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LeaderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ManagerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TeamId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("WorkStatusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeaderId");
+
+                    b.HasIndex("ManagerId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("WorkStatusId");
+
+                    b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.ProjectUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProjectUsers");
                 });
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.RequestStatus", b =>
@@ -284,6 +388,52 @@ namespace CompanyTaskManager.Data.Migrations
                     b.ToTable("RoleRequests");
                 });
 
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.TaskItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmissionText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorkStatusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedUserId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("WorkStatusId");
+
+                    b.ToTable("TaskItems");
+                });
+
             modelBuilder.Entity("CompanyTaskManager.Data.Models.Team", b =>
                 {
                     b.Property<string>("Id")
@@ -304,6 +454,50 @@ namespace CompanyTaskManager.Data.Migrations
                     b.ToTable("Teams");
                 });
 
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.WorkStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WorkStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Active"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "In Progress"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Completion Pending"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Completed"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Rejected"
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -312,11 +506,6 @@ namespace CompanyTaskManager.Data.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("nvarchar(21)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
@@ -334,10 +523,6 @@ namespace CompanyTaskManager.Data.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasDiscriminator().HasValue("IdentityRole");
-
-                    b.UseTphMappingStrategy();
 
                     b.HasData(
                         new
@@ -477,28 +662,6 @@ namespace CompanyTaskManager.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationRole", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole");
-
-                    b.HasDiscriminator().HasValue("ApplicationRole");
-                });
-
-            modelBuilder.Entity("ApplicationRoleApplicationUser", b =>
-                {
-                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationRole", null)
-                        .WithMany()
-                        .HasForeignKey("RolesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationUser", b =>
                 {
                     b.HasOne("CompanyTaskManager.Data.Models.Team", "Team")
@@ -528,6 +691,60 @@ namespace CompanyTaskManager.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.Project", b =>
+                {
+                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", "Leader")
+                        .WithMany()
+                        .HasForeignKey("LeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CompanyTaskManager.Data.Models.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompanyTaskManager.Data.Models.WorkStatus", "WorkStatus")
+                        .WithMany()
+                        .HasForeignKey("WorkStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Leader");
+
+                    b.Navigation("Manager");
+
+                    b.Navigation("Team");
+
+                    b.Navigation("WorkStatus");
+                });
+
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.ProjectUser", b =>
+                {
+                    b.HasOne("CompanyTaskManager.Data.Models.Project", "Project")
+                        .WithMany("ProjectUsers")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", "User")
+                        .WithMany("ProjectUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CompanyTaskManager.Data.Models.RoleRequest", b =>
                 {
                     b.HasOne("CompanyTaskManager.Data.Models.RequestStatus", "RequestStatus")
@@ -545,6 +762,31 @@ namespace CompanyTaskManager.Data.Migrations
                     b.Navigation("RequestStatus");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.TaskItem", b =>
+                {
+                    b.HasOne("CompanyTaskManager.Data.Models.ApplicationUser", "AssignedUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompanyTaskManager.Data.Models.Project", "Project")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ProjectId");
+
+                    b.HasOne("CompanyTaskManager.Data.Models.WorkStatus", "WorkStatus")
+                        .WithMany()
+                        .HasForeignKey("WorkStatusId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AssignedUser");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("WorkStatus");
                 });
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.Team", b =>
@@ -612,6 +854,15 @@ namespace CompanyTaskManager.Data.Migrations
             modelBuilder.Entity("CompanyTaskManager.Data.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Notifications");
+
+                    b.Navigation("ProjectUsers");
+                });
+
+            modelBuilder.Entity("CompanyTaskManager.Data.Models.Project", b =>
+                {
+                    b.Navigation("ProjectUsers");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.Team", b =>

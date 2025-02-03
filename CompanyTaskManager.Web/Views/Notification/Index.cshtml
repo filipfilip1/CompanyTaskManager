@@ -4,33 +4,38 @@
     ViewData["Title"] = "Notifications";
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="container mt-4">
+    <h2 class="text-dark">@ViewData["Title"]</h2>
 
-@if (!Model.Any())
-{
-    <p>You don't have any notifications</p>
-}
-else
-{
-    <ul class="list-group">
-        @foreach (var notification in Model)
-        {
-            
-            var itemClass = notification.IsRead ? "text-muted" : "fw-bold";
+    @if (!Model.Any())
+    {
+        <div class="alert alert-secondary">
+            You don't have any notifications.
+        </div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var notification in Model)
+            {
+                var itemClass = notification.IsRead ? "list-group-item-secondary" : "list-group-item-primary fw-bold";
 
-            <li class="list-group-item @itemClass">
-                <div>
-                    @notification.Message
-                    <span class="text-muted">(@notification.CreatedAt.ToString("g"))</span>
+                <div class="list-group-item @itemClass mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1">@notification.Message</p>
+                            <small class="text-muted">@notification.CreatedAt.ToString("g")</small>
+                        </div>
+                        @if (!notification.IsRead)
+                        {
+                            <form method="post" asp-action="MarkAsRead" asp-route-id="@notification.Id" class="mb-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as Read</button>
+                            </form>
+                        }
+                    </div>
                 </div>
-                @if (!notification.IsRead)
-                {
-                    <form method="post" asp-action="MarkAsRead" asp-route-id="@notification.Id">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-link">Mark as Read</button>
-                    </form>
-                }
-            </li>
-        }
-    </ul>
-}
+            }
+        </div>
+    }
+</div>

@@ -30,6 +30,51 @@ public class NotificationTypeConfiguration : IEntityTypeConfiguration<Notificati
             {
                 Id = 4,
                 Name = "Removed From Team"
+            },
+            new NotificationType
+            {
+                Id = 5,
+                Name = "Added As Project Leader"
+            },
+            new NotificationType
+            {
+                Id = 6,
+                Name = "Added To Task"
+            },
+            new NotificationType
+            {
+                Id = 7,
+                Name = "Added To Project"
+            },
+            new NotificationType
+            {
+                Id = 8,
+                Name = "Project Waiting For Approve"
+            },
+            new NotificationType
+            {
+                Id = 9,
+                Name = "Project Completion Approve"
+            },
+            new NotificationType
+            {
+                Id = 10,
+                Name = "Project Completion Rejected"
+            },
+            new NotificationType
+            {
+                Id = 11,
+                Name = "Task Waiting For Approve"
+            },
+            new NotificationType
+            {
+                Id = 12,
+                Name = "Task Completion Approve"
+            },
+            new NotificationType
+            {
+                Id = 13,
+                Name = "Task Completion Rejected"
             }
             );
     }
