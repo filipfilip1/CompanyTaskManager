@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementy rozwiązania", "El
 		Dockerfile = Dockerfile
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanyTaskManager.UnitTests", "CompanyTaskManager.Tests\CompanyTaskManager.UnitTests.csproj", "{9B44827F-7B56-4783-B221-6B74195A63F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyTaskManager.UnitTests", "CompanyTaskManager.UnitTests\CompanyTaskManager.UnitTests.csproj", "{A7F77647-9B74-48FC-B433-C9C88BD67DEA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{FB6596C9-4E75-4E93-97FC-8FA559CEEBFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB6596C9-4E75-4E93-97FC-8FA559CEEBFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB6596C9-4E75-4E93-97FC-8FA559CEEBFD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9B44827F-7B56-4783-B221-6B74195A63F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9B44827F-7B56-4783-B221-6B74195A63F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9B44827F-7B56-4783-B221-6B74195A63F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9B44827F-7B56-4783-B221-6B74195A63F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7F77647-9B74-48FC-B433-C9C88BD67DEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7F77647-9B74-48FC-B433-C9C88BD67DEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7F77647-9B74-48FC-B433-C9C88BD67DEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7F77647-9B74-48FC-B433-C9C88BD67DEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
