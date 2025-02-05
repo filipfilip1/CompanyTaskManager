@@ -4,6 +4,7 @@ using CompanyTaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyTaskManager.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250205115753_seedNewUsers")]
+    partial class seedNewUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,7 +107,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "4b0b2aeb-474e-45f2-8899-e4a1536a52bf",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ba80bf0a-962b-45a9-8503-069e0c8c32af",
+                            ConcurrencyStamp = "32694db8-ab14-43e7-8599-836deef4a2e8",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -112,9 +115,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEO/7mdlwuEqgkghm4VTYnn+X28MXFk0cxeKclN0+xd6zCgxVgwJnqVNYI2G50p+yZQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB/cXlE8nNB9CkHoRJXNrEcnYiOI0GdBUemhb795iMk2Jd4KJ+uQv9kt/1LEQGX5JA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "7e99279e-286d-4594-b01f-1e143fb6efc7",
+                            SecurityStamp = "ac9631ff-da6c-4683-9a36-ec93969079f8",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         },
@@ -122,7 +125,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "66d7ea08-73a8-44a1-84a1-3d41d7c16ecb",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "f70bae9b-5690-421f-9ae2-ebd55a017bbd",
+                            ConcurrencyStamp = "0da48a21-3642-4c6f-a4b8-9174ff18e7da",
                             Email = "manager@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -130,9 +133,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@LOCALHOST.COM",
                             NormalizedUserName = "MANAGER@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMKCurknNjoi11r/VPWM7H0OQ3qGriT0ZGXcLr9ubeRVOOpa9nKWgn0uGRPFld/fTg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMXLOeLtHBxO0fRNOHx42Ivo7og+xeGUkrO2NA69mTLPOjCmuuqF392rHiahE55Iog==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "fbd3afd7-4957-426b-8aa3-fe913458b2e5",
+                            SecurityStamp = "6075e293-867a-40d6-9f93-d1ddc08a9fc2",
                             TwoFactorEnabled = false,
                             UserName = "manager@localhost.com"
                         },
@@ -140,7 +143,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "56d078c0-f671-4a22-b3fd-977f2ac33eae",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "15167dc4-5aa2-4538-bc82-8199b5e2edde",
+                            ConcurrencyStamp = "45699219-7f91-4f73-95d3-cfecd4066ccd",
                             Email = "employee1@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -148,9 +151,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "EMPLOYEE1@LOCALHOST.COM",
                             NormalizedUserName = "EMPLOYEE1@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHOwszy19jPy4zG/FMKgsnwmlMUAWEMOSwCs3A9w74t9luNiMsExGjI0LvBYQ1EgQg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPyff1visD/D/mH0x0a2c151+C2pkwFnAs3G6oK8yCK9K8/Ovz539PS8VzOGhso4Xg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "f4ca39a7-c0fc-4283-9c9b-107fd9a9632e",
+                            SecurityStamp = "213e5a7b-3437-456f-a22f-4fc5d18c9795",
                             TwoFactorEnabled = false,
                             UserName = "employee1@localhost.com"
                         },
@@ -158,7 +161,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "31dd98c5-71e1-4cbf-81a0-fd995bb0a735",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e05a7437-6ca2-4518-a0d2-fcc4166a2638",
+                            ConcurrencyStamp = "98d12077-85f4-4b5a-81f7-fc4c9edce568",
                             Email = "employee2@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -166,9 +169,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "EMPLOYEE2@LOCALHOST.COM",
                             NormalizedUserName = "EMPLOYEE2@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAECaSDhmBHHmROZOeZV3sreZgGEJ+a0K/QDPnF64+dh3Aj7BAu9zPK3h/TmM1+M4SnA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENukYiJXvSFCoOikXGz+pDr8Sj2dLVSCcj6ZSxgrpKxAQOxUuRZxg3XZqwji5csfKQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "fde17157-396a-4a5a-8cd7-9b1e6587e8d1",
+                            SecurityStamp = "9f7f4d0e-e022-48ef-ad71-8dec930a22d9",
                             TwoFactorEnabled = false,
                             UserName = "employee2@localhost.com"
                         },
@@ -176,7 +179,7 @@ namespace CompanyTaskManager.Data.Migrations
                         {
                             Id = "c47afd54-3108-4ee6-8edc-a0bc2688ebba",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c090e337-9551-4410-b1d1-0493f97e083e",
+                            ConcurrencyStamp = "627cccdc-d8ea-4881-9fb6-09eb91670c58",
                             Email = "employee3@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Default",
@@ -184,9 +187,9 @@ namespace CompanyTaskManager.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "EMPLOYEE3@LOCALHOST.COM",
                             NormalizedUserName = "EMPLOYEE3@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEnRzdXi+LhAXo3EZWl4EaoSfN41EXHVWE+MOEvuP5O0IW4AiR6p/A4S0j4AvW8Glw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAsGEXlZuwgkF3iK9BxTL/yd4GWnQW31aPzIcgiJ22XAZ/dm5/NfGw36e//5JvppHQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "0bf7ee1b-24bb-4a59-a423-014e3b722ff1",
+                            SecurityStamp = "115c65b6-130b-48b2-846c-bbd45c086ad1",
                             TwoFactorEnabled = false,
                             UserName = "employee3@localhost.com"
                         });
@@ -524,14 +527,6 @@ namespace CompanyTaskManager.Data.Migrations
                     b.HasIndex("ManagerId");
 
                     b.ToTable("Teams");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "66d7ea08-73a8-44a1-84a1-3d41d7c16ecb",
-                            ManagerId = "66d7ea08-73a8-44a1-84a1-3d41d7c16ecb",
-                            Name = "Manager's Team"
-                        });
                 });
 
             modelBuilder.Entity("CompanyTaskManager.Data.Models.WorkStatus", b =>

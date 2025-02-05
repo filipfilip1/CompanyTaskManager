@@ -1,4 +1,4 @@
-namespace CompanyTaskManager.Tests
+namespace CompanyTaskManager.UnitTests
 {
     public class UnitTest1
     {

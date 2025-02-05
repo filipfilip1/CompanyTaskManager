@@ -56,6 +56,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.AssignedUserName, opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.UserName : ""))
             .ForMember(dest => dest.WorkStatusName, opt => opt.MapFrom(src => src.WorkStatus != null ? src.WorkStatus.Name : ""));
 
+        CreateMap<CreateTaskItemViewModel, TaskItem>();
 
     }
 }

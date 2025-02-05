@@ -24,7 +24,10 @@ if (!string.IsNullOrEmpty(runMigrations) && runMigrations.Equals("true", StringC
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Console.WriteLine("About to call Migrate()");
         db.Database.Migrate();
+        Console.WriteLine("Migrate() done");
+
     }
 }
 
