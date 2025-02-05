@@ -1,0 +1,24 @@
+﻿version: '3.7'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "P@ssword1"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aspnetapp
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=CompanyTaskManager;User ID=sa;Password=P@ssword1;MultipleActiveResultSets=true;Encrypt=false;Trusted_Connection=False"
+      RUN_MIGRATIONS: "true"
