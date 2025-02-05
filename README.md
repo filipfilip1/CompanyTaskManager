@@ -15,7 +15,10 @@ A web application written in ASP.NET Core (MVC architecture) for managing tasks 
 
 ## Functions and roles
 
-- **Registration and login** of users, with choice of role `Employee` or `Manager`.  
+![Image](https://github.com/user-attachments/assets/a9cc41b3-4060-46ec-a2b9-8f2e55469d19)
+- **Registration and login** of users, with choice of role `Employee` or `Manager`.
+[![Image](https://github.com/user-attachments/assets/a0acab3d-b6f6-4a02-b9ba-c676aa11e722)](https://github.com/user-attachments/assets/a0acab3d-b6f6-4a02-b9ba-c676aa11e722)
+
   - In addition, `Administrator` is a seeded user and it is not possible to assign such a role through registration.
 
 ### Administrator
