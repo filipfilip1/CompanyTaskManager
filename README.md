@@ -92,7 +92,7 @@ The solution (Solution) consists of **4** related projects:
 1. **Clone the repository**
 
    ```sh
-   git clone https://github.com/twoj-uzytkownik/twoj-projekt.git
+   git clone https://github.com/filipfilip1/CompanyTaskManager.git
    ```
 
 2. **Navigate to the project directory**
