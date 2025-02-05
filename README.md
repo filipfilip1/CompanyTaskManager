@@ -5,39 +5,49 @@ A web application written in ASP.NET Core (MVC architecture) for managing tasks 
 ## Table of contents
 
 1. [Functions and roles](#functions-and-roles)
-2. [Technologies and architecture](#technologies-and-architecture).
-3. [Project structure](#project-structure).
-4. [Launching an application using Docker](#launching-an-application-using-docker).
-5. [Development plans](#development-plans).
+2. [Technologies and architecture](#technologies-and-architecture)
+3. [Project structure](#project-structure)
+4. [Launching an application using Docker](#launching-an-application-using-docker)
+5. [Development plans](#development-plans)
 
 
 ---
+![Image](https://github.com/user-attachments/assets/a9cc41b3-4060-46ec-a2b9-8f2e55469d19)
 
 ## Functions and roles
-
-![Image](https://github.com/user-attachments/assets/a9cc41b3-4060-46ec-a2b9-8f2e55469d19)
 - **Registration and login** of users, with choice of role `Employee` or `Manager`.
-[![Image](https://github.com/user-attachments/assets/a0acab3d-b6f6-4a02-b9ba-c676aa11e722)](https://github.com/user-attachments/assets/a0acab3d-b6f6-4a02-b9ba-c676aa11e722)
-
   - In addition, `Administrator` is a seeded user and it is not possible to assign such a role through registration.
 
 ### Administrator
-- Approves role requests (Employee / Manager) after registration of new users.  
-- Can block (deactivate) user accounts.  
+- Approves role requests (Employee / Manager) after registration of new users.
+  
+  ![Image](https://github.com/user-attachments/assets/71690e69-c2e5-4d33-a543-6d4d73849ed6)
+- Can block (deactivate) user accounts.
+
 
 ### Manager
-- Creates **teams** and manages them (adding/deleting employees).  
-- Can create **tasks** and **projects** (assigns them to team members, appoints a project leader).  
+- Creates **teams** and manages them (adding/deleting employees).
+  
+ ![Image](https://github.com/user-attachments/assets/61bdc206-1304-498c-844d-2b23716a4684)
+- Can create **tasks** and **projects** (assigns them to team members, appoints a project leader).
+  
+ ![Image](https://github.com/user-attachments/assets/3fea92e4-c61b-43fd-b71b-d2d7d14ceb1b)
 - Approves or rejects tasks and projects (possible only when all tasks in the project are completed).
 
 ### Employee
-- Reviews **tasks and projects** to which he/she is assigned.  
+- Reviews **tasks and projects** to which he/she is assigned.
+  
+  ![Image](https://github.com/user-attachments/assets/f54925b1-1e42-4c76-8c5f-34f3e3f47c40)
 - **Updates** statuses and sends tasks for approval.  
 
 
 ### Additional features
-- **Notification System** (for Manager and Employee) - informs, for example, about assignment to a task, sending a task for approval etc.  
+- **Notification System** (for Manager and Employee) - informs, for example, about assignment to a task, sending a task for approval etc.
+  
+  ![Image](https://github.com/user-attachments/assets/44cee2fa-1b9b-4590-a7d0-7d2032d3636b)
 - **Calendar (FullCalendar)** - interactive preview of active tasks and projects.
+  
+ ![Image](https://github.com/user-attachments/assets/cbf011be-20f2-4fcf-8d10-2a8ffdfd574d)
 
 ---
 
