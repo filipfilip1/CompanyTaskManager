@@ -8,7 +8,7 @@ COPY CompanyTaskManager.Web/CompanyTaskManager.Web.csproj ./CompanyTaskManager.W
 COPY CompanyTaskManager.Application/CompanyTaskManager.Application.csproj ./CompanyTaskManager.Application/
 COPY CompanyTaskManager.Common/CompanyTaskManager.Common.csproj ./CompanyTaskManager.Common/
 COPY CompanyTaskManager.Data/CompanyTaskManager.Data.csproj ./CompanyTaskManager.Data/
-COPY CompanyTaskManager.UnitTests/CompanyTaskManager.UnitTests.csproj ./CompanyTaskManager.UnitTests/
+COPY CompanyTaskManager.IntegrationTests/CompanyTaskManager.IntegrationTests.csproj ./CompanyTaskManager.IntegrationTests/
 
 # Restore dependencies
 RUN dotnet restore CompanyTaskManager.Web.sln
@@ -18,7 +18,7 @@ COPY CompanyTaskManager.Web/ ./CompanyTaskManager.Web/
 COPY CompanyTaskManager.Application/ ./CompanyTaskManager.Application/
 COPY CompanyTaskManager.Common/ ./CompanyTaskManager.Common/
 COPY CompanyTaskManager.Data/ ./CompanyTaskManager.Data/
-COPY CompanyTaskManager.UnitTests/ ./CompanyTaskManager.UnitTests/
+COPY CompanyTaskManager.IntegrationTests/ ./CompanyTaskManager.IntegrationTests/
 
 # Publish the application
 RUN dotnet publish CompanyTaskManager.Web/CompanyTaskManager.Web.csproj -c Release -o /app/publish
