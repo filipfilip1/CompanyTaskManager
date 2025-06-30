@@ -6,18 +6,22 @@ using CompanyTaskManager.Data;
 using CompanyTaskManager.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CompanyTaskManager.Application.Services.TaskItems;
 
 public class ProjectTaskService(ApplicationDbContext _context,
     INotificationService _notificationService,
     IMapper _mapper,
-    UserManager<ApplicationUser> _userManager) : IProjectTaskService
+    UserManager<ApplicationUser> _userManager,
+    ILogger<ProjectTaskService> _logger) : IProjectTaskService
 {
     // === Employee Method ===
 
     public async Task<ProjectTaskItemViewModel?> GetEmployeeTaskDetailsAsync(int taskId, string userId)
     {
+        _logger.LogInformation("Employee {UserId} fetching project task details for task {TaskId}", userId, taskId);
+        
         var task = await _context.TaskItems
             .Include(t => t.AssignedUser)
             .Include(t => t.WorkStatus)
@@ -25,10 +29,16 @@ public class ProjectTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId != null);
 
         if (task == null)
+        {
+            _logger.LogWarning("Project task {TaskId} not found for employee {UserId}", taskId, userId);
             return null;
+        }
 
         if (task.AssignedUserId != userId)
+        {
+            _logger.LogWarning("Employee {UserId} attempted to access project task {TaskId} not assigned to them", userId, taskId);
             return null;
+        }
 
         var viewModel = _mapper.Map<ProjectTaskItemViewModel>(task);
 
@@ -38,11 +48,13 @@ public class ProjectTaskService(ApplicationDbContext _context,
             viewModel.CanSendForApproval = true;
         }
 
+        _logger.LogDebug("Project task {TaskId} details retrieved for employee {UserId}, can send for approval: {CanSendForApproval}", taskId, userId, viewModel.CanSendForApproval);
         return viewModel;
     }
 
     public async Task SendForApprovalAsync(int taskId, string userId)
     {
+        _logger.LogInformation("Employee {UserId} sending project task {TaskId} for approval", userId, taskId);
         var task = await _context.TaskItems
             .Include(t => t.AssignedUser)
             .Include(t => t.Project)

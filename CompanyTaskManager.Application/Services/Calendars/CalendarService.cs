@@ -4,15 +4,18 @@ using CompanyTaskManager.Application.Dto;
 using CompanyTaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using CompanyTaskManager.Common.Static;
+using Microsoft.Extensions.Logging;
 
 namespace CompanyTaskManager.Application.Services.Calendars;
 
 public class CalendarService(
-    ApplicationDbContext _context) : ICalendarService
+    ApplicationDbContext _context,
+    ILogger<CalendarService> _logger) : ICalendarService
 
 {
     public async Task<List<CalendarEventDto>> GetAllEventsAsync(string userId)
     {
+        _logger.LogInformation("Fetching all calendar events for user {UserId}", userId);
         // fetch projects related to manager, leader and employee
         var projectEvents = await _context.Projects
             .Include(p => p.WorkStatus)
@@ -82,6 +85,10 @@ public class CalendarService(
         allEvents.AddRange(projectEvents);
         allEvents.AddRange(taskItemEvents);
         allEvents.AddRange(projectTaskEvents);
+
+        _logger.LogDebug("Found {ProjectCount} project events, {TaskCount} task events, {ProjectTaskCount} project task events for user {UserId}", 
+            projectEvents.Count, taskItemEvents.Count, projectTaskEvents.Count, userId);
+        _logger.LogInformation("Successfully retrieved {TotalCount} calendar events for user {UserId}", allEvents.Count, userId);
 
         return allEvents;
     }

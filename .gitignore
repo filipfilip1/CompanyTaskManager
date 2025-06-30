@@ -364,3 +364,7 @@ FodyWeavers.xsd
 
 # Personal development files
 REFACTORING_PLAN.md
+
+# Serilog log files
+logs/
+*.log

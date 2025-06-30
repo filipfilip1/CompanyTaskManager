@@ -16,7 +16,8 @@ public class StandaloneTaskController(
     IStandaloneTaskService _standaloneTaskService,
     IWorkStatusService _workStatusService,
     UserManager<ApplicationUser> _userManager,
-    ITeamService _teamService) : Controller
+    ITeamService _teamService,
+    ILogger<StandaloneTaskController> _logger) : Controller
 
 {
 
@@ -124,16 +125,36 @@ public class StandaloneTaskController(
     public async Task<IActionResult> SendForApproval(int taskId, string submissionText)
     {
         var user = await _userManager.GetUserAsync(User);
+        var userName = user?.UserName ?? "Unknown";
+        
         if (user == null)
+        {
+            _logger.LogWarning("Unauthorized access attempt to send standalone task for approval");
             return Forbid();
+        }
 
-        // Save submission text
-        await _standaloneTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
+        try
+        {
+            _logger.LogInformation("User {UserName} ({UserId}) is sending standalone task {TaskId} for approval with submission text length: {TextLength}", 
+                userName, user.Id, taskId, submissionText?.Length ?? 0);
 
-        // Send for approval
-        await _standaloneTaskService.SendForApprovalAsync(taskId, user.Id);
+            // Save submission text
+            await _standaloneTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
 
-        return RedirectToAction(nameof(MyTasks));
+            // Send for approval
+            await _standaloneTaskService.SendForApprovalAsync(taskId, user.Id);
+
+            _logger.LogInformation("Standalone task {TaskId} successfully sent for approval by user {UserName}", 
+                taskId, userName);
+
+            return RedirectToAction(nameof(MyTasks));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending standalone task {TaskId} for approval by user {UserName} ({UserId})", 
+                taskId, userName, user.Id);
+            throw;
+        }
     }
 
     [Authorize(Roles = Roles.Manager)]
@@ -156,12 +177,32 @@ public class StandaloneTaskController(
     public async Task<IActionResult> Approve(int taskId)
     {
         var manager = await _userManager.GetUserAsync(User);
+        var managerName = manager?.UserName ?? "Unknown";
+        
         if (manager == null)
+        {
+            _logger.LogWarning("Unauthorized access attempt to approve standalone task");
             return Forbid();
+        }
 
-        await _standaloneTaskService.ApproveTaskAsync(taskId, manager.Id);
+        try
+        {
+            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is approving standalone task {TaskId}", 
+                managerName, manager.Id, taskId);
 
-        return RedirectToAction(nameof(ManagerTasks));
+            await _standaloneTaskService.ApproveTaskAsync(taskId, manager.Id);
+
+            _logger.LogInformation("Standalone task {TaskId} successfully approved by manager {ManagerName}", 
+                taskId, managerName);
+
+            return RedirectToAction(nameof(ManagerTasks));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error approving standalone task {TaskId} by manager {ManagerName} ({ManagerId})", 
+                taskId, managerName, manager.Id);
+            throw;
+        }
     }
 
     [HttpPost]
@@ -170,11 +211,32 @@ public class StandaloneTaskController(
     public async Task<IActionResult> Reject(int taskId)
     {
         var manager = await _userManager.GetUserAsync(User);
+        var managerName = manager?.UserName ?? "Unknown";
+        
         if (manager == null)
+        {
+            _logger.LogWarning("Unauthorized access attempt to reject standalone task");
             return Forbid();
+        }
 
-        await _standaloneTaskService.RejectTaskAsync(taskId, manager.Id);
-        return RedirectToAction(nameof(ManagerTasks));
+        try
+        {
+            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is rejecting standalone task {TaskId}", 
+                managerName, manager.Id, taskId);
+
+            await _standaloneTaskService.RejectTaskAsync(taskId, manager.Id);
+
+            _logger.LogInformation("Standalone task {TaskId} successfully rejected by manager {ManagerName}", 
+                taskId, managerName);
+
+            return RedirectToAction(nameof(ManagerTasks));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error rejecting standalone task {TaskId} by manager {ManagerName} ({ManagerId})", 
+                taskId, managerName, manager.Id);
+            throw;
+        }
     }
 
 

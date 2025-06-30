@@ -7,6 +7,7 @@ using CompanyTaskManager.Data;
 using CompanyTaskManager.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CompanyTaskManager.Application.Services.TaskItems;
@@ -14,11 +15,13 @@ namespace CompanyTaskManager.Application.Services.TaskItems;
 public class StandaloneTaskService(ApplicationDbContext _context,
     INotificationService _notificationService,
     IMapper _mapper,
-    UserManager<ApplicationUser> _userManager) : IStandaloneTaskService
+    UserManager<ApplicationUser> _userManager,
+    ILogger<StandaloneTaskService> _logger) : IStandaloneTaskService
 {
     // === Employee Method ===
     public async Task<List<TaskItemViewModel>> GetTasksForEmployeeAsync(string userId)
     {
+        _logger.LogInformation("Fetching standalone tasks for employee {UserId}", userId);
         var tasks = await _context.TaskItems
             .Include(t => t.AssignedUser)
             .Include(t => t.WorkStatus)
