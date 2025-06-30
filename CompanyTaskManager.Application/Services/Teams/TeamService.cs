@@ -5,44 +5,63 @@ using CompanyTaskManager.Data;
 using CompanyTaskManager.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CompanyTaskManager.Application.Services.Teams;
 
-public class TeamService(ApplicationDbContext _context,
+public class TeamService(
+    ApplicationDbContext _context,
     INotificationService _notificationService,
-    UserManager<ApplicationUser> _userManager) : ITeamService
+    UserManager<ApplicationUser> _userManager,
+    ILogger<TeamService> _logger) : ITeamService
 {
     public async Task AddMemberAsync(string teamId, string userId)
     {
+        _logger.LogInformation("Adding user {UserId} to team {TeamId}", userId, teamId);
+        
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
+        {
+            _logger.LogWarning("Failed to add user {UserId} to team {TeamId}: User not found", userId, teamId);
             throw new Exception("User not found");
+        }
 
         var team = await _context.Teams
             .FirstOrDefaultAsync(t => t.Id == teamId);
 
         if (team == null)
+        {
+            _logger.LogWarning("Failed to add user {UserId} to team {TeamId}: Team not found", userId, teamId);
             throw new Exception("Team not found");
+        }
 
-       user.TeamId = teamId;
+        user.TeamId = teamId;
 
-       var message = $"You have been added to team {team.Name}";
-       await _notificationService.CreateNotificationAsync(userId, message, 3); // 3 is the notification type id for Added To Team
+        var message = $"You have been added to team {team.Name}";
+        await _notificationService.CreateNotificationAsync(userId, message, 3); // 3 is the notification type id for Added To Team
 
-
-       await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Successfully added user {UserId} to team {TeamId} ({TeamName})", userId, teamId, team.Name);
     }
     public async Task RemoveMemberAsync(string teamId, string userId)
     {
+        _logger.LogInformation("Removing user {UserId} from team {TeamId}", userId, teamId);
+        
         var user = await _context.Users.FindAsync(userId);
         if (user == null || user.TeamId != teamId)
+        {
+            _logger.LogWarning("Failed to remove user {UserId} from team {TeamId}: User not in this team", userId, teamId);
             throw new Exception("User not in this team");
+        }
 
         var team = await _context.Teams
             .FirstOrDefaultAsync(t => t.Id == teamId);
 
         if (team == null)
+        {
+            _logger.LogWarning("Failed to remove user {UserId} from team {TeamId}: Team not found", userId, teamId);
             throw new Exception("Team not found");
+        }
 
         user.TeamId = null;
 

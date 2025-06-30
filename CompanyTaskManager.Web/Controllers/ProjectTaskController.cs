@@ -12,7 +12,8 @@ namespace CompanyTaskManager.Web.Controllers;
 
 public class ProjectTaskController(IProjectTaskService _projectTaskService,
     ITeamService _teamService,
-    UserManager<ApplicationUser> _userManager) : Controller
+    UserManager<ApplicationUser> _userManager,
+    ILogger<ProjectTaskController> _logger) : Controller
 {
 
     [Authorize(Roles = Roles.Employee)]
@@ -35,17 +36,36 @@ public class ProjectTaskController(IProjectTaskService _projectTaskService,
     public async Task<IActionResult> SendForApproval(int taskId, string submissionText)
     {
         var user = await _userManager.GetUserAsync(User);
+        var userName = user?.UserName ?? "Unknown";
+        
         if (user == null)
+        {
+            _logger.LogWarning("Unauthorized access attempt to send project task for approval");
             return Forbid();
+        }
 
-        // Update submission text
-        await _projectTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
+        try
+        {
+            _logger.LogInformation("User {UserName} ({UserId}) is sending project task {TaskId} for approval with submission text length: {TextLength}", 
+                userName, user.Id, taskId, submissionText?.Length ?? 0);
 
-        // Send for approval
-        await _projectTaskService.SendForApprovalAsync(taskId, user.Id);
+            // Update submission text
+            await _projectTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
 
+            // Send for approval
+            await _projectTaskService.SendForApprovalAsync(taskId, user.Id);
 
-        return RedirectToAction(nameof(EmployeeTaskDetails), new { taskId });
+            _logger.LogInformation("Project task {TaskId} successfully sent for approval by user {UserName}", 
+                taskId, userName);
+
+            return RedirectToAction(nameof(EmployeeTaskDetails), new { taskId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending project task {TaskId} for approval by user {UserName} ({UserId})", 
+                taskId, userName, user.Id);
+            throw;
+        }
     }
 
     [Authorize(Roles = Roles.Manager)]
@@ -67,12 +87,32 @@ public class ProjectTaskController(IProjectTaskService _projectTaskService,
     public async Task<IActionResult> Approve(int taskId)
     {
         var user = await _userManager.GetUserAsync(User);
+        var userName = user?.UserName ?? "Unknown";
+        
         if (user == null)
+        {
+            _logger.LogWarning("Unauthorized access attempt to approve project task");
             return Forbid();
+        }
 
-        var id = await _projectTaskService.ApproveProjectTaskAsync(taskId, user.Id);
+        try
+        {
+            _logger.LogInformation("User {UserName} ({UserId}) is approving project task {TaskId}", 
+                userName, user.Id, taskId);
 
-        return RedirectToAction("Details", "Project", new { id });
+            var id = await _projectTaskService.ApproveProjectTaskAsync(taskId, user.Id);
+
+            _logger.LogInformation("Project task {TaskId} successfully approved by user {UserName}", 
+                taskId, userName);
+
+            return RedirectToAction("Details", "Project", new { id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error approving project task {TaskId} by user {UserName} ({UserId})", 
+                taskId, userName, user.Id);
+            throw;
+        }
     }
 
     [HttpPost]
@@ -80,12 +120,32 @@ public class ProjectTaskController(IProjectTaskService _projectTaskService,
     public async Task<IActionResult> Reject(int taskId)
     {
         var user = await _userManager.GetUserAsync(User);
+        var userName = user?.UserName ?? "Unknown";
+        
         if (user == null)
+        {
+            _logger.LogWarning("Unauthorized access attempt to reject project task");
             return Forbid();
+        }
 
-        var projectId = await _projectTaskService.RejectProjectTaskAsync(taskId, user.Id);
+        try
+        {
+            _logger.LogInformation("User {UserName} ({UserId}) is rejecting project task {TaskId}", 
+                userName, user.Id, taskId);
 
-        return RedirectToAction("Details", "Project", new { projectId });
+            var projectId = await _projectTaskService.RejectProjectTaskAsync(taskId, user.Id);
+
+            _logger.LogInformation("Project task {TaskId} successfully rejected by user {UserName}", 
+                taskId, userName);
+
+            return RedirectToAction("Details", "Project", new { projectId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error rejecting project task {TaskId} by user {UserName} ({UserId})", 
+                taskId, userName, user.Id);
+            throw;
+        }
     }
 
     [Authorize(Roles = Roles.Manager)]

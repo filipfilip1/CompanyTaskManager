@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace CompanyTaskManager.Web.Controllers;
 
 [Authorize(Roles = Roles.Manager)]
-public class TeamController(ITeamService _teamService,
-    UserManager<ApplicationUser> _userManager) : Controller
+public class TeamController(
+    ITeamService _teamService,
+    UserManager<ApplicationUser> _userManager,
+    ILogger<TeamController> _logger) : Controller
 {
 
     public async Task<IActionResult> ManageTeam()
@@ -44,16 +46,52 @@ public class TeamController(ITeamService _teamService,
     public async Task<IActionResult> AddMember(string userId)
     {
         var manager = await _userManager.GetUserAsync(User);
-        await _teamService.AddMemberAsync(manager.Id, userId);
-        return RedirectToAction("AddTeamMember");
+        var managerName = manager?.UserName ?? "Unknown";
+        
+        try
+        {
+            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is adding user {UserId} to their team", 
+                managerName, manager?.Id, userId);
+                
+            await _teamService.AddMemberAsync(manager.Id, userId);
+            
+            _logger.LogInformation("User {UserId} successfully added to team by manager {ManagerName}", 
+                userId, managerName);
+                
+            return RedirectToAction("AddTeamMember");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding user {UserId} to team by manager {ManagerName}", 
+                userId, managerName);
+            throw;
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> RemoveMember(string userId)
     {
         var manager = await _userManager.GetUserAsync(User);
-        await _teamService.RemoveMemberAsync(manager.Id, userId);
-        return RedirectToAction("ManageTeam");
+        var managerName = manager?.UserName ?? "Unknown";
+        
+        try
+        {
+            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is removing user {UserId} from their team", 
+                managerName, manager?.Id, userId);
+                
+            await _teamService.RemoveMemberAsync(manager.Id, userId);
+            
+            _logger.LogInformation("User {UserId} successfully removed from team by manager {ManagerName}", 
+                userId, managerName);
+                
+            return RedirectToAction("ManageTeam");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing user {UserId} from team by manager {ManagerName}", 
+                userId, managerName);
+            throw;
+        }
     }
 
     public async Task<IActionResult> GetFilteredTeamMembers(string leaderId)
