@@ -1,6 +1,7 @@
 ﻿
 
 using AutoMapper;
+using CompanyTaskManager.Application.Exceptions;
 using CompanyTaskManager.Application.Services.Notifications;
 using CompanyTaskManager.Application.ViewModels.TaskItem;
 using CompanyTaskManager.Data;
@@ -64,10 +65,18 @@ public class StandaloneTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId == null);
 
         if (task == null)
-            throw new Exception("Standalone task not found.");
+            throw new NotFoundException("Standalone task", taskId);
 
         if (task.AssignedUserId != userId)
-            throw new Exception("You are not assigned to this task.");
+            throw new Exceptions.UnauthorizedAccessException("You are not assigned to this task.");
+
+        // Check if task is in correct state for approval request
+        if (task.WorkStatusId != 1) // Not Active
+        {
+            _logger.LogWarning("Cannot send task {TaskId} for approval: Task is not in Active state (current state: {WorkStatusId})", 
+                taskId, task.WorkStatusId);
+            throw new ValidationException("Task must be in Active state to send for approval.");
+        }
 
         task.WorkStatusId = 3; // "Completion Pending"
         await _context.SaveChangesAsync();
@@ -82,7 +91,6 @@ public class StandaloneTaskService(ApplicationDbContext _context,
                 11 // “Task Waiting For Approve”
             );
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateSubmissionTextAsync(int taskId, string userId, string submissionText)
@@ -91,10 +99,10 @@ public class StandaloneTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId == null);
 
         if (task == null)
-            throw new Exception("Standalone task not found.");
+            throw new NotFoundException("Standalone task", taskId);
 
         if (task.AssignedUserId != userId)
-            throw new Exception("You are not assigned to this task.");
+            throw new Exceptions.UnauthorizedAccessException("You are not assigned to this task.");
 
         task.SubmissionText = submissionText;
         await _context.SaveChangesAsync();
@@ -147,14 +155,14 @@ public class StandaloneTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId == null);
 
         if (task == null)
-            throw new Exception("Task not found.");
+            throw new NotFoundException("Task", taskId);
 
         if (task.WorkStatusId != 3)
-            throw new Exception("Task is not pending approval.");
+            throw new ValidationException("Task is not pending approval.");
 
         var teamManagerId = task.AssignedUser?.Team?.ManagerId;
         if (teamManagerId != managerId)
-            throw new Exception("You don't have permission to approve this standalone task.");
+            throw new Exceptions.UnauthorizedAccessException("You don't have permission to approve this standalone task.");
 
         // Approving the task
         task.WorkStatusId = 4; // "Completed"
@@ -175,14 +183,14 @@ public class StandaloneTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId == null);
 
         if (task == null)
-            throw new Exception("Task not found.");
+            throw new NotFoundException("Task", taskId);
 
         if (task.WorkStatusId != 3)
-            throw new Exception("Task is not pending approval.");
+            throw new ValidationException("Task is not pending approval.");
 
         var teamManagerId = task.AssignedUser?.Team?.ManagerId;
         if (teamManagerId != managerId)
-            throw new Exception("You don't have permission to reject this standalone task.");
+            throw new Exceptions.UnauthorizedAccessException("You don't have permission to reject this standalone task.");
 
         // Rejecting the task
         task.WorkStatusId = 5; // "Rejected"
@@ -200,6 +208,15 @@ public class StandaloneTaskService(ApplicationDbContext _context,
 
     public async Task CreateStandaloneTaskAsync(CreateTaskItemViewModel model)
     {
+        _logger.LogInformation("Creating standalone task for user {AssignedUserId}", model.AssignedUserId);
+        
+        // Validate that assigned user exists
+        var assignedUser = await _context.Users.FindAsync(model.AssignedUserId);
+        if (assignedUser == null)
+        {
+            _logger.LogWarning("Failed to create standalone task: User {AssignedUserId} not found", model.AssignedUserId);
+            throw new NotFoundException("User", model.AssignedUserId);
+        }
 
         var taskItem = _mapper.Map<TaskItem>(model);
         taskItem.ProjectId = null;

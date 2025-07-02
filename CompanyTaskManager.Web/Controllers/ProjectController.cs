@@ -168,12 +168,22 @@ public class ProjectController(IProjectService _projectService,
         var projectVm = await _projectService.GetProjectByIdAsync(id);
         if (projectVm == null) return NotFound();
 
+        // Check if user has access to this project
+        bool isManager = projectVm.ManagerId == user.Id;
+        bool isLeader = projectVm.LeaderId == user.Id;
+        bool isProjectMember = projectVm.Members?.Any(m => m.Id == user.Id) ?? false;
+        
+        if (!isManager && !isLeader && !isProjectMember)
+        {
+            _logger.LogWarning("User {UserId} ({UserName}) attempted to access project {ProjectId} without permissions", 
+                user.Id, user.UserName, id);
+            return Forbid();
+        }
+
         // set current user id
         projectVm.CurrentUserId = user.Id;
 
         // logic to determine if user can request project completion, approve project, reject project
-        bool isLeader = (projectVm.LeaderId == user.Id);
-        bool isManager = (projectVm.ManagerId == user.Id);
         bool isActive = (projectVm.WorkStatusName == WorkStatusesName.Active);
         bool isPending = (projectVm.WorkStatusName == WorkStatusesName.CompletionPending);
 

@@ -1,6 +1,7 @@
 ﻿
 
 using AutoMapper;
+using CompanyTaskManager.Application.Exceptions;
 using CompanyTaskManager.Application.Services.Notifications;
 using CompanyTaskManager.Application.ViewModels.Project;
 using CompanyTaskManager.Application.ViewModels.User;
@@ -85,7 +86,7 @@ public class ProjectService(ApplicationDbContext _context,
         if (manager == null)
         {
             _logger.LogWarning("Failed to create project: Manager with ID {ManagerId} not found", projectViewModel.ManagerId);
-            throw new Exception($"Manager with ID '{projectViewModel.ManagerId}' not found.");
+            throw new NotFoundException("Manager", projectViewModel.ManagerId);
         }
 
         var project = _mapper.Map<Project>(projectViewModel);
@@ -93,11 +94,27 @@ public class ProjectService(ApplicationDbContext _context,
 
         if (projectViewModel.SelectedMemberIds != null && projectViewModel.SelectedMemberIds.Any())
         {
+            // Validate that all selected members exist in the database
+            var existingUserIds = await _context.Users
+                .Where(u => projectViewModel.SelectedMemberIds.Contains(u.Id))
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            var nonExistentUserIds = projectViewModel.SelectedMemberIds.Except(existingUserIds).ToList();
+            if (nonExistentUserIds.Any())
+            {
+                _logger.LogWarning("Failed to create project: Some selected members do not exist. Non-existent IDs: {NonExistentIds}", 
+                    string.Join(", ", nonExistentUserIds));
+                throw new ValidationException($"The following user IDs do not exist: {string.Join(", ", nonExistentUserIds)}");
+            }
+
             project.ProjectUsers = projectViewModel.SelectedMemberIds
                 .Select(memberId => new ProjectUser {
                     UserId = memberId,
                     ProjectId = project.Id
                 }).ToList();
+
+            _logger.LogDebug("All {MemberCount} selected members validated successfully", projectViewModel.SelectedMemberIds.Count);
         }
 
 
@@ -117,7 +134,7 @@ public class ProjectService(ApplicationDbContext _context,
         if (project == null)
         {
             _logger.LogWarning("Failed to assign leader: Project {ProjectId} not found or no access for manager {ManagerId}", projectId, managerId);
-            throw new Exception("The project was not found or you do not have access to it.");
+            throw new Exceptions.UnauthorizedAccessException("The project was not found or you do not have access to it.");
         }
 
         project.LeaderId = leaderId;
@@ -140,13 +157,13 @@ public class ProjectService(ApplicationDbContext _context,
         if (project == null)
         {
             _logger.LogWarning("Failed to reject project completion: Project {ProjectId} not found", projectId);
-            throw new Exception("Project was not found.");
+            throw new NotFoundException("Project", projectId);
         }
 
         if (project.WorkStatusId != 3)
         {
             _logger.LogWarning("Failed to reject project completion: Project {ProjectId} is not in pending state (current status: {StatusId})", projectId, project.WorkStatusId);
-            throw new Exception("The project is not in a pending state.");
+            throw new ValidationException("The project is not in a pending state.");
         }
 
         project.WorkStatusId = 5; // Rejected
@@ -169,13 +186,13 @@ public class ProjectService(ApplicationDbContext _context,
         if (project == null)
         {
             _logger.LogWarning("Failed to approve project: Project {ProjectId} not found", projectId);
-            throw new Exception("Project was not found.");
+            throw new NotFoundException("Project", projectId);
         }
 
         if (project.WorkStatusId != 3)
         {
             _logger.LogWarning("Failed to approve project: Project {ProjectId} is not in pending state (current status: {StatusId})", projectId, project.WorkStatusId);
-            throw new Exception("The project is not in a pending state.");
+            throw new ValidationException("The project is not in a pending state.");
         }
 
         project.WorkStatusId = 4; // Completed
@@ -199,12 +216,20 @@ public class ProjectService(ApplicationDbContext _context,
         if (project == null)
         {
             _logger.LogWarning("Failed to request project completion: Project {ProjectId} not found", projectId);
-            throw new Exception("Project was not found.");
+            throw new NotFoundException("Project", projectId);
         }
 
         var tasksAll = await _context.TaskItems
             .Where(t => t.ProjectId == project.Id)
             .ToListAsync();
+
+        // Check if project is in correct state for completion request
+        if (project.WorkStatusId != 1) // Not Active
+        {
+            _logger.LogWarning("Cannot request completion for project {ProjectId}: Project is not in Active state (current state: {WorkStatusId})", 
+                projectId, project.WorkStatusId);
+            throw new ValidationException("Project must be in Active state to request completion.");
+        }
 
         // Check if all tasks in project are completed
         bool allTasksIsApproved = tasksAll.All(t => t.WorkStatusId == 4); // Completed
@@ -212,7 +237,7 @@ public class ProjectService(ApplicationDbContext _context,
         {
             _logger.LogWarning("Cannot request completion for project {ProjectId}: Not all tasks are completed ({CompletedTasks}/{TotalTasks})", 
                 projectId, tasksAll.Count(t => t.WorkStatusId == 4), tasksAll.Count);
-            throw new Exception("Not all tasks are completed yet. Cannot request project completion.");
+            throw new ValidationException("Not all tasks are completed yet. Cannot request project completion.");
         }
 
 

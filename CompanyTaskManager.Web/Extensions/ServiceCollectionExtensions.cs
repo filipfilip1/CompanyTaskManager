@@ -1,10 +1,11 @@
+using CompanyTaskManager.Web.Middleware;
 using Serilog;
 using Serilog.Events;
 
 namespace CompanyTaskManager.Web.Extensions;
 
 /// <summary>
-/// Provides Serilog configuration methods for the application.
+/// Extension methods for configuring application services and middleware.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
@@ -79,5 +80,14 @@ public static class ServiceCollectionExtensions
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 7,
                 outputTemplate: LoggingTemplates.File);
+    }
+    
+    /// <summary>
+    /// Configures global exception handling middleware.
+    /// </summary>
+    public static WebApplication UseGlobalExceptionHandling(this WebApplication app)
+    {
+        app.UseMiddleware<GlobalExceptionMiddleware>();
+        return app;
     }
 }

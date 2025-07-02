@@ -19,7 +19,13 @@ public class TeamController(
     public async Task<IActionResult> ManageTeam()
     {
         var manager = await _userManager.GetUserAsync(User);
-        var teamId = manager?.Id;
+        if (manager == null)
+        {
+            _logger.LogWarning("Manager not found when trying to access ManageTeam");
+            return Forbid();
+        }
+
+        var teamId = manager.Id;
         var teamMembers = await _teamService.GetTeamMembersAsync(teamId);
 
         var model = new ManageTeamViewModel
@@ -97,6 +103,11 @@ public class TeamController(
     public async Task<IActionResult> GetFilteredTeamMembers(string leaderId)
     {
         var manager = await _userManager.GetUserAsync(User);
+        if (manager == null)
+        {
+            _logger.LogWarning("Manager not found when trying to access GetFilteredTeamMembers");
+            return Forbid();
+        }
 
         var teamMembers = await _teamService.GetTeamMembersAsync(manager.Id);
 

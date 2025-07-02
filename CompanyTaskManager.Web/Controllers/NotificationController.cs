@@ -14,12 +14,18 @@ public class NotificationController(INotificationService _notificationService,
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
-        var userName = user?.UserName ?? "Unknown";
+        if (user == null)
+        {
+            _logger.LogWarning("User not found when trying to access notifications");
+            return Forbid();
+        }
+
+        var userName = user.UserName;
         
         try
         {
             _logger.LogInformation("User {UserName} ({UserId}) is accessing notifications", 
-                userName, user?.Id);
+                userName, user.Id);
                 
             var allNotifications = await _notificationService.GetAllNotificationsForUserAsync(user.Id);
             
@@ -31,7 +37,7 @@ public class NotificationController(INotificationService _notificationService,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving notifications for user {UserName} ({UserId})", 
-                userName, user?.Id);
+                userName, user.Id);
             throw;
         }
     }
@@ -41,12 +47,18 @@ public class NotificationController(INotificationService _notificationService,
     public async Task<IActionResult> MarkAsRead(int id)
     {
         var user = await _userManager.GetUserAsync(User);
-        var userName = user?.UserName ?? "Unknown";
+        if (user == null)
+        {
+            _logger.LogWarning("User not found when trying to mark notification {NotificationId} as read", id);
+            return Forbid();
+        }
+
+        var userName = user.UserName;
         
         try
         {
             _logger.LogInformation("User {UserName} ({UserId}) is marking notification {NotificationId} as read", 
-                userName, user?.Id, id);
+                userName, user.Id, id);
                 
             await _notificationService.MarkAsReadAsync(id);
             
@@ -58,7 +70,7 @@ public class NotificationController(INotificationService _notificationService,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking notification {NotificationId} as read by user {UserName} ({UserId})", 
-                id, userName, user?.Id);
+                id, userName, user.Id);
             throw;
         }
     }
