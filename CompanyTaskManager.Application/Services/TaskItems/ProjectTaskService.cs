@@ -1,5 +1,6 @@
 ﻿
 using AutoMapper;
+using CompanyTaskManager.Application.Exceptions;
 using CompanyTaskManager.Application.Services.Notifications;
 using CompanyTaskManager.Application.ViewModels.TaskItem;
 using CompanyTaskManager.Data;
@@ -61,10 +62,18 @@ public class ProjectTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId != null);
 
         if (task == null)
-            throw new Exception("Project task not found.");
+            throw new NotFoundException("Project task", taskId);
 
         if (task.AssignedUserId != userId)
-            throw new Exception("You are not assigned to this project task.");
+            throw new Exceptions.UnauthorizedAccessException("You are not assigned to this project task.");
+
+        // Check if task is in correct state for approval request
+        if (task.WorkStatusId != 1) // Not Active
+        {
+            _logger.LogWarning("Cannot send project task {TaskId} for approval: Task is not in Active state (current state: {WorkStatusId})", 
+                taskId, task.WorkStatusId);
+            throw new ValidationException("Task must be in Active state to send for approval.");
+        }
 
         // Set task status to 'Completion Pending'
         task.WorkStatusId = 3; // Completion Pending
@@ -79,7 +88,6 @@ public class ProjectTaskService(ApplicationDbContext _context,
                 11
             );
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateSubmissionTextAsync(int taskId, string userId, string submissionText)
@@ -88,10 +96,10 @@ public class ProjectTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId != null);
 
         if (task == null)
-            throw new Exception("Project task not found.");
+            throw new NotFoundException("Project task", taskId);
 
         if (task.AssignedUserId != userId)
-            throw new Exception("You are not assigned to this project task.");
+            throw new Exceptions.UnauthorizedAccessException("You are not assigned to this project task.");
 
         task.SubmissionText = submissionText;
         await _context.SaveChangesAsync();
@@ -145,17 +153,17 @@ public class ProjectTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId != null);
 
         if (task == null)
-            throw new Exception("Project task not found.");
+            throw new NotFoundException("Project task", taskId);
 
         if (task.WorkStatusId != 3) // 3 = "Completion Pending"
-            throw new Exception("Task is not pending approval.");
+            throw new ValidationException("Task is not pending approval.");
 
         // Only Leader can approve
         if (task.Project == null)
-            throw new Exception("Project not found for this task.");
+            throw new NotFoundException("Project", "for this task");
 
         if (task.Project.LeaderId != leaderId)
-            throw new Exception("You don't have permission to approve this project task (Leader only).");
+            throw new Exceptions.UnauthorizedAccessException("You don't have permission to approve this project task (Leader only).");
 
         task.WorkStatusId = 4;
 
@@ -178,16 +186,16 @@ public class ProjectTaskService(ApplicationDbContext _context,
             .FirstOrDefaultAsync(t => t.Id == taskId && t.ProjectId != null);
 
         if (task == null)
-            throw new Exception("Project task not found.");
+            throw new NotFoundException("Project task", taskId);
 
         if (task.WorkStatusId != 3) // 3 = "Completion Pending"
-            throw new Exception("Task is not pending approval.");
+            throw new ValidationException("Task is not pending approval.");
 
         if (task.Project == null)
-            throw new Exception("Project not found for this task.");
+            throw new NotFoundException("Project", "for this task");
 
         if (task.Project.LeaderId != leaderId)
-            throw new Exception("You don't have permission to reject this project task (Leader only).");
+            throw new Exceptions.UnauthorizedAccessException("You don't have permission to reject this project task (Leader only).");
 
         task.WorkStatusId = 5; // 5 = Rejected
         await _context.SaveChangesAsync();
@@ -205,11 +213,21 @@ public class ProjectTaskService(ApplicationDbContext _context,
 
     public async Task CreateProjectTaskAsync(CreateTaskItemViewModel model, string managerId)
     {
+        _logger.LogInformation("Creating project task for user {AssignedUserId} in project {ProjectId}", model.AssignedUserId, model.ProjectId);
+        
         var project = await _context.Projects
             .FirstOrDefaultAsync(p => p.Id == model.ProjectId && p.ManagerId == managerId);
 
         if (project == null)
-            throw new Exception("Project not found or no access.");
+            throw new Exceptions.UnauthorizedAccessException("Project not found or no access.");
+        
+        // Validate that assigned user exists
+        var assignedUser = await _context.Users.FindAsync(model.AssignedUserId);
+        if (assignedUser == null)
+        {
+            _logger.LogWarning("Failed to create project task: User {AssignedUserId} not found", model.AssignedUserId);
+            throw new NotFoundException("User", model.AssignedUserId);
+        }
 
         var taskItem = _mapper.Map<TaskItem>(model);
         taskItem.WorkStatusId = 1; // Active

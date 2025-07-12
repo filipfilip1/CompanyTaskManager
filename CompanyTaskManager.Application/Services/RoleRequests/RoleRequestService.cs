@@ -1,6 +1,7 @@
 ﻿
 
 using AutoMapper;
+using CompanyTaskManager.Application.Exceptions;
 using CompanyTaskManager.Application.Services.Notifications;
 using CompanyTaskManager.Application.Services.Teams;
 using CompanyTaskManager.Application.ViewModels.RoleRequest;
@@ -45,7 +46,7 @@ public class RoleRequestService(ApplicationDbContext _context,
         if (roleRequest == null)
         {
             _logger.LogWarning("Role request {RoleRequestId} not found", roleRequestId);
-            throw new Exception("Role request not found");
+            throw new NotFoundException("Role request", roleRequestId);
         }
         
 
@@ -53,9 +54,11 @@ public class RoleRequestService(ApplicationDbContext _context,
         if (user == null)
         {
             _logger.LogWarning("User {UserId} not found for role request {RoleRequestId}", roleRequest.UserId, roleRequestId);
-            throw new Exception("User not found");
+            throw new NotFoundException("User", roleRequest.UserId);
         }
 
+        // Use database transaction for consistent state
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var result = await _userManager.AddToRoleAsync(user, roleRequest.RequestedRole);
@@ -63,7 +66,7 @@ public class RoleRequestService(ApplicationDbContext _context,
             {
                 _logger.LogWarning("Failed to add role {Role} to user {UserId}: {Errors}", 
                     roleRequest.RequestedRole, roleRequest.UserId, string.Join(", ", result.Errors.Select(e => e.Description)));
-                throw new Exception("Failed to add role to user");
+                throw new ValidationException("Failed to add role to user");
             }
 
             if (roleRequest.RequestedRole == "Manager")
@@ -71,23 +74,25 @@ public class RoleRequestService(ApplicationDbContext _context,
                 var teamName = $"{user.FirstName}'s Team";
                 await _teamService.CreateTeamAsync(user.Id, teamName);
             }
-        } catch (Exception ex)
+
+            roleRequest.IsApproved = true;
+            roleRequest.ApprovalDate = DateTime.Now;
+            roleRequest.RequestStatusId = 2; // Approved
+
+            _context.Update(roleRequest);
+            await _context.SaveChangesAsync();
+
+            await _notificationService.CreateNotificationAsync(roleRequest.UserId, "Your role request has been approved", 1);
+            
+            await transaction.CommitAsync();
+        } 
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to add manager role to user {UserId} or create a team", roleRequest.UserId);
-            throw new Exception("Failed to add manager role to user or create a team");
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to approve role request {RoleRequestId} for user {UserId}: transaction rolled back", 
+                roleRequestId, roleRequest.UserId);
+            throw new ValidationException("Failed to approve role request: operation was rolled back");
         }
-
-
-
-        roleRequest.IsApproved = true;
-        roleRequest.ApprovalDate = DateTime.Now;
-        roleRequest.RequestStatusId = 2; // Approved
-
-        _context.Update(roleRequest);
-
-        await _notificationService.CreateNotificationAsync(roleRequest.UserId, "Your role request has been approved", 1);
-
-        await _context.SaveChangesAsync();
         
         _logger.LogInformation("Role request {RoleRequestId} approved successfully for user {UserId} to role {Role}", 
             roleRequestId, roleRequest.UserId, roleRequest.RequestedRole);
@@ -117,7 +122,7 @@ public class RoleRequestService(ApplicationDbContext _context,
         if (roleRequest == null)
         {
             _logger.LogWarning("Role request {RoleRequestId} not found", roleRequestId);
-            throw new Exception("Role request not found");
+            throw new NotFoundException("Role request", roleRequestId);
         }
 
         roleRequest.IsApproved = false;

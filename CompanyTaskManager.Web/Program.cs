@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 // Configure bootstrap logger to capture startup logs before DI container is built
-ServiceCollectionExtensions.ConfigureBootstrapLogger();
+CompanyTaskManager.Web.Extensions.ServiceCollectionExtensions.ConfigureBootstrapLogger();
 
 try
 {
@@ -30,6 +30,9 @@ try
     builder.Services.AddControllersWithViews();
     
     var app = builder.Build();
+    
+    // Configure global exception handling (must be early in pipeline)
+    app.UseGlobalExceptionHandling();
     
     // Configure request logging
     app.ConfigureRequestLogging();

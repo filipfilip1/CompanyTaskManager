@@ -12,7 +12,7 @@ public class UserController(IUserService _userService,
     RoleManager<IdentityRole> _roleManager,
     ILogger<UserController> _logger) : Controller
 {
-    public IActionResult Index(string searchString)
+    public async Task<IActionResult> Index(string searchString)
     {
         var userName = User?.Identity?.Name ?? "Unknown";
         
@@ -21,7 +21,7 @@ public class UserController(IUserService _userService,
             _logger.LogInformation("Administrator {UserName} is accessing users index with search string: {SearchString}", 
                 userName, searchString ?? "All");
                 
-            var users = _userService.GetAllUsersAsync(searchString).Result;
+            var users = await _userService.GetAllUsersAsync(searchString);
             
             _logger.LogInformation("Successfully retrieved {UserCount} users for administrator {UserName}", 
                 users.Count(), userName);

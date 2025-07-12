@@ -2,6 +2,7 @@
 
 
 using AutoMapper;
+using CompanyTaskManager.Application.Exceptions;
 using CompanyTaskManager.Application.ViewModels.User;
 using CompanyTaskManager.Common.Static;
 using CompanyTaskManager.Data.Models;
@@ -83,7 +84,7 @@ public class UserService(UserManager<ApplicationUser> _userManager,
         if (user == null)
         {
             _logger.LogWarning("User {UserId} not found when attempting to block", userId);
-            throw new Exception("User not found");
+            throw new NotFoundException("User", userId);
         }
 
         var roles = await _userManager.GetRolesAsync(user);
@@ -91,7 +92,7 @@ public class UserService(UserManager<ApplicationUser> _userManager,
         if (roles.Contains(Roles.Administrator))
         {
             _logger.LogWarning("Attempt to block administrator user {UserId} was denied", userId);
-            throw new Exception("Cannot block administrator");
+            throw new Exceptions.UnauthorizedAccessException("Cannot block administrator");
         }
 
         user.LockoutEnd = DateTimeOffset.MaxValue;
@@ -107,7 +108,7 @@ public class UserService(UserManager<ApplicationUser> _userManager,
         if (user == null)
         {
             _logger.LogWarning("User {UserId} not found when attempting to unblock", userId);
-            throw new Exception("User not found");
+            throw new NotFoundException("User", userId);
         }
 
         user.LockoutEnd = null;

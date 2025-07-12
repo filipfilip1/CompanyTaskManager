@@ -1,4 +1,5 @@
-﻿using CompanyTaskManager.Application.Services.Notifications;
+﻿using CompanyTaskManager.Application.Exceptions;
+using CompanyTaskManager.Application.Services.Notifications;
 using CompanyTaskManager.Application.ViewModels.User;
 using CompanyTaskManager.Common.Static;
 using CompanyTaskManager.Data;
@@ -23,7 +24,7 @@ public class TeamService(
         if (user == null)
         {
             _logger.LogWarning("Failed to add user {UserId} to team {TeamId}: User not found", userId, teamId);
-            throw new Exception("User not found");
+            throw new NotFoundException("User", userId);
         }
 
         var team = await _context.Teams
@@ -32,7 +33,7 @@ public class TeamService(
         if (team == null)
         {
             _logger.LogWarning("Failed to add user {UserId} to team {TeamId}: Team not found", userId, teamId);
-            throw new Exception("Team not found");
+            throw new NotFoundException("Team", teamId);
         }
 
         user.TeamId = teamId;
@@ -48,10 +49,16 @@ public class TeamService(
         _logger.LogInformation("Removing user {UserId} from team {TeamId}", userId, teamId);
         
         var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.TeamId != teamId)
+        if (user == null)
+        {
+            _logger.LogWarning("Failed to remove user {UserId} from team {TeamId}: User not found", userId, teamId);
+            throw new NotFoundException("User", userId);
+        }
+        
+        if (user.TeamId != teamId)
         {
             _logger.LogWarning("Failed to remove user {UserId} from team {TeamId}: User not in this team", userId, teamId);
-            throw new Exception("User not in this team");
+            throw new ValidationException("User is not a member of this team");
         }
 
         var team = await _context.Teams
@@ -60,7 +67,7 @@ public class TeamService(
         if (team == null)
         {
             _logger.LogWarning("Failed to remove user {UserId} from team {TeamId}: Team not found", userId, teamId);
-            throw new Exception("Team not found");
+            throw new NotFoundException("Team", teamId);
         }
 
         user.TeamId = null;
@@ -175,7 +182,7 @@ public class TeamService(
             .FirstOrDefaultAsync(t => t.Id == teamId);
 
         if (team == null)
-            throw new Exception($"Team with ID '{teamId}' not found.");
+            throw new NotFoundException("Team", teamId);
 
         // exclude manager from team members
         var members = team.Members

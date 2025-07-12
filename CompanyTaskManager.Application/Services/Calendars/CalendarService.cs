@@ -1,6 +1,5 @@
-﻿
-
-using CompanyTaskManager.Application.Dto;
+﻿using CompanyTaskManager.Application.Dto;
+using CompanyTaskManager.Application.Exceptions;
 using CompanyTaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using CompanyTaskManager.Common.Static;
@@ -15,6 +14,12 @@ public class CalendarService(
 {
     public async Task<List<CalendarEventDto>> GetAllEventsAsync(string userId)
     {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _logger.LogWarning("GetAllEventsAsync called with null or empty userId");
+            throw new ValidationException("User ID cannot be null or empty");
+        }
+        
         _logger.LogInformation("Fetching all calendar events for user {UserId}", userId);
         // fetch projects related to manager, leader and employee
         var projectEvents = await _context.Projects
@@ -40,7 +45,7 @@ public class CalendarService(
             .Include(t => t.AssignedUser).ThenInclude(u => u.Team)
             .Where(t =>
                  t.AssignedUserId == userId
-                || t.AssignedUser.Team.ManagerId == userId
+                || (t.AssignedUser != null && t.AssignedUser.Team != null && t.AssignedUser.Team.ManagerId == userId)
             )
             .Where(t =>
                 t.WorkStatus.Name != WorkStatusesName.Completed
@@ -76,7 +81,7 @@ public class CalendarService(
                 Start = t.EndDate,
                 End = t.EndDate,
                 Type = "projectTask",
-                IsLeader = t.Project.LeaderId == userId
+                IsLeader = t.Project != null && t.Project.LeaderId == userId
             })
             .ToListAsync();
 
