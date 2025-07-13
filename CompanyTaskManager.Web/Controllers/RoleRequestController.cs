@@ -14,24 +14,15 @@ public class RoleRequestController(IRoleRequestsService _roleRequestsService,
     {
         var userName = User?.Identity?.Name ?? "Unknown";
         
-        try
-        {
-            _logger.LogInformation("Administrator {UserName} is accessing role requests with status filter: {StatusId}", 
-                userName, statusId?.ToString() ?? "All");
-                
-            var summary = await _roleRequestsService.GetRoleRequestSummaryAsync(statusId);
+        _logger.LogInformation("Administrator {UserName} is accessing role requests with status filter: {StatusId}", 
+            userName, statusId?.ToString() ?? "All");
             
-            _logger.LogInformation("Successfully retrieved role request summary for administrator {UserName}", 
-                userName);
-                
-            return View(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving role request summary for administrator {UserName}", 
-                userName);
-            throw;
-        }
+        var summary = await _roleRequestsService.GetRoleRequestSummaryAsync(statusId);
+        
+        _logger.LogInformation("Successfully retrieved role request summary for administrator {UserName}", 
+            userName);
+            
+        return View(summary);
     }
 
     [HttpPost]

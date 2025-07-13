@@ -22,24 +22,15 @@ public class NotificationController(INotificationService _notificationService,
 
         var userName = user.UserName;
         
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is accessing notifications", 
-                userName, user.Id);
-                
-            var allNotifications = await _notificationService.GetAllNotificationsForUserAsync(user.Id);
+        _logger.LogInformation("User {UserName} ({UserId}) is accessing notifications", 
+            userName, user.Id);
             
-            _logger.LogInformation("Successfully retrieved {NotificationCount} notifications for user {UserName}", 
-                allNotifications.Count(), userName);
-                
-            return View(allNotifications);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving notifications for user {UserName} ({UserId})", 
-                userName, user.Id);
-            throw;
-        }
+        var allNotifications = await _notificationService.GetAllNotificationsForUserAsync(user.Id);
+        
+        _logger.LogInformation("Successfully retrieved {NotificationCount} notifications for user {UserName}", 
+            allNotifications.Count(), userName);
+            
+        return View(allNotifications);
     }
 
     [HttpPost]
@@ -55,23 +46,14 @@ public class NotificationController(INotificationService _notificationService,
 
         var userName = user.UserName;
         
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is marking notification {NotificationId} as read", 
-                userName, user.Id, id);
-                
-            await _notificationService.MarkAsReadAsync(id);
+        _logger.LogInformation("User {UserName} ({UserId}) is marking notification {NotificationId} as read", 
+            userName, user.Id, id);
             
-            _logger.LogInformation("Notification {NotificationId} successfully marked as read by user {UserName}", 
-                id, userName);
-                
-            return RedirectToAction("Index");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error marking notification {NotificationId} as read by user {UserName} ({UserId})", 
-                id, userName, user.Id);
-            throw;
-        }
+        await _notificationService.MarkAsReadAsync(id);
+        
+        _logger.LogInformation("Notification {NotificationId} successfully marked as read by user {UserName}", 
+            id, userName);
+            
+        return RedirectToAction("Index");
     }
 }

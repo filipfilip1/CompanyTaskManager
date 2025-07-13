@@ -27,23 +27,14 @@ public class CalendarController(ICalendarService _calendarService,
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is fetching calendar events for date {Date}", 
-                userName, user.Id, date?.ToString("yyyy-MM-dd") ?? "all dates");
-                
-            var events = await _calendarService.GetAllEventsAsync(user.Id);
+        _logger.LogInformation("User {UserName} ({UserId}) is fetching calendar events for date {Date}", 
+            userName, user.Id, date?.ToString("yyyy-MM-dd") ?? "all dates");
             
-            _logger.LogInformation("Successfully retrieved {EventCount} calendar events for user {UserName}", 
-                events.Count(), userName);
+        var events = await _calendarService.GetAllEventsAsync(user.Id);
+        
+        _logger.LogInformation("Successfully retrieved {EventCount} calendar events for user {UserName}", 
+            events.Count(), userName);
 
-            return Json(events);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving calendar events for user {UserName} ({UserId})", 
-                userName, user.Id);
-            throw;
-        }
+        return Json(events);
     }
 }

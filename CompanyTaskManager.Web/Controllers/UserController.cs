@@ -16,24 +16,15 @@ public class UserController(IUserService _userService,
     {
         var userName = User?.Identity?.Name ?? "Unknown";
         
-        try
-        {
-            _logger.LogInformation("Administrator {UserName} is accessing users index with search string: {SearchString}", 
-                userName, searchString ?? "All");
-                
-            var users = await _userService.GetAllUsersAsync(searchString);
+        _logger.LogInformation("Administrator {UserName} is accessing users index with search string: {SearchString}", 
+            userName, searchString ?? "All");
             
-            _logger.LogInformation("Successfully retrieved {UserCount} users for administrator {UserName}", 
-                users.Count(), userName);
-                
-            return View(users);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving users for administrator {UserName} with search string: {SearchString}", 
-                userName, searchString ?? "All");
-            throw;
-        }
+        var users = await _userService.GetAllUsersAsync(searchString);
+        
+        _logger.LogInformation("Successfully retrieved {UserCount} users for administrator {UserName}", 
+            users.Count(), userName);
+            
+        return View(users);
     }
 
 

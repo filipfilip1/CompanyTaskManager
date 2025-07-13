@@ -24,54 +24,45 @@ public class ProjectController(IProjectService _projectService,
         var user = await _userManager.GetUserAsync(User);
         var userName = user?.UserName ?? "Unknown";
         
-        try
+        _logger.LogInformation("User {UserName} ({UserId}) is accessing projects index with filters: Status={Status}, LeaderName={LeaderName}, ShowOnlyOverdue={ShowOnlyOverdue}", 
+            userName, user?.Id, status ?? "All", leaderName ?? "All", showOnlyOverdue);
+            
+        var projects = await _projectService.GetProjectsByUserAsync(user.Id);
+
+        var allStatuses = await _workStatusService.GetAllWorkStatusesAsync();
+        ViewBag.Statuses = allStatuses;
+
+        if (!string.IsNullOrEmpty(status))
+            projects = projects
+                .Where(p => p.WorkStatusName == status)
+                .ToList();
+
+        if (!string.IsNullOrEmpty(leaderName))
+            projects = projects
+                .Where(p => p.LeaderName.Contains(leaderName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+        if (showOnlyOverdue)
         {
-            _logger.LogInformation("User {UserName} ({UserId}) is accessing projects index with filters: Status={Status}, LeaderName={LeaderName}, ShowOnlyOverdue={ShowOnlyOverdue}", 
-                userName, user?.Id, status ?? "All", leaderName ?? "All", showOnlyOverdue);
-                
-            var projects = await _projectService.GetProjectsByUserAsync(user.Id);
+            projects = projects
+                .Where(t => t.IsOverdue)
+                .ToList();
 
-            var allStatuses = await _workStatusService.GetAllWorkStatusesAsync();
-            ViewBag.Statuses = allStatuses;
-
-            if (!string.IsNullOrEmpty(status))
-                projects = projects
-                    .Where(p => p.WorkStatusName == status)
-                    .ToList();
-
-            if (!string.IsNullOrEmpty(leaderName))
-                projects = projects
-                    .Where(p => p.LeaderName.Contains(leaderName, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-            if (showOnlyOverdue)
-            {
-                projects = projects
-                    .Where(t => t.IsOverdue)
-                    .ToList();
-
-                projects = projects.OrderByDescending(t => t.EndDate).ToList();
-            }
-            else
-            {
-
-                projects = projects
-                    .OrderBy(t => t.IsOverdue).ThenBy(t => t.IsCompleted)  
-                    .ThenByDescending(t => t.EndDate)
-                    .ToList();
-            }
-
-            _logger.LogInformation("Successfully retrieved {ProjectCount} projects for user {UserName}", 
-                projects.Count, userName);
-
-            return View(projects);
+            projects = projects.OrderByDescending(t => t.EndDate).ToList();
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error retrieving projects for user {UserName} ({UserId})", 
-                userName, user?.Id);
-            throw;
+
+            projects = projects
+                .OrderBy(t => t.IsOverdue).ThenBy(t => t.IsCompleted)  
+                .ThenByDescending(t => t.EndDate)
+                .ToList();
         }
+
+        _logger.LogInformation("Successfully retrieved {ProjectCount} projects for user {UserName}", 
+            projects.Count, userName);
+
+        return View(projects);
     }
 
     [Authorize(Roles = Roles.Manager)]
@@ -80,40 +71,31 @@ public class ProjectController(IProjectService _projectService,
         var manager = await _userManager.GetUserAsync(User);
         var managerName = manager?.UserName ?? "Unknown";
         
-        try
+        _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is accessing project creation form", 
+            managerName, manager?.Id);
+            
+        var team = await _context.Teams.Include(t => t.Members).FirstOrDefaultAsync(t => t.ManagerId == manager.Id);
+
+        var model = new CreateProjectViewModel();
+
+        if (team != null)
         {
-            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is accessing project creation form", 
-                managerName, manager?.Id);
+            model.ManagerId = manager.Id;
+            model.TeamId = manager.Id;
+            model.TeamMembers = team.Members
+                .Select(u => new SelectListItem(u.UserName, u.Id))
+                .ToList();
                 
-            var team = await _context.Teams.Include(t => t.Members).FirstOrDefaultAsync(t => t.ManagerId == manager.Id);
-
-            var model = new CreateProjectViewModel();
-
-            if (team != null)
-            {
-                model.ManagerId = manager.Id;
-                model.TeamId = manager.Id;
-                model.TeamMembers = team.Members
-                    .Select(u => new SelectListItem(u.UserName, u.Id))
-                    .ToList();
-                    
-                _logger.LogInformation("Team with {MemberCount} members loaded for manager {ManagerName}", 
-                    team.Members.Count, managerName);
-            }
-            else
-            {
-                _logger.LogWarning("No team found for manager {ManagerName} ({ManagerId})", 
-                    managerName, manager?.Id);
-            }
-
-            return View(model);
+            _logger.LogInformation("Team with {MemberCount} members loaded for manager {ManagerName}", 
+                team.Members.Count, managerName);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error loading project creation form for manager {ManagerName} ({ManagerId})", 
+            _logger.LogWarning("No team found for manager {ManagerName} ({ManagerId})", 
                 managerName, manager?.Id);
-            throw;
         }
+
+        return View(model);
     }
 
     [HttpPost]
@@ -140,24 +122,15 @@ public class ProjectController(IProjectService _projectService,
             return View(model);
         }
 
-        try
-        {
-            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is creating project '{ProjectName}' with leader {LeaderId}", 
-                managerName, manager?.Id, model.Name, model.LeaderId);
-                
-            await _projectService.CreateProjectAsync(model);
+        _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is creating project '{ProjectName}' with leader {LeaderId}", 
+            managerName, manager?.Id, model.Name, model.LeaderId);
             
-            _logger.LogInformation("Project '{ProjectName}' successfully created by manager {ManagerName}", 
-                model.Name, managerName);
-                
-            return RedirectToAction("Index");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating project '{ProjectName}' by manager {ManagerName} ({ManagerId})", 
-                model.Name, managerName, manager?.Id);
-            throw;
-        }
+        await _projectService.CreateProjectAsync(model);
+        
+        _logger.LogInformation("Project '{ProjectName}' successfully created by manager {ManagerName}", 
+            model.Name, managerName);
+            
+        return RedirectToAction("Index");
     }
 
     public async Task<IActionResult> Details(int id)
@@ -204,24 +177,15 @@ public class ProjectController(IProjectService _projectService,
         var user = await _userManager.GetUserAsync(User);
         var userName = user?.UserName ?? "Unknown";
         
-        try
-        {
-            _logger.LogInformation("Manager {UserName} ({UserId}) is assigning leader {LeaderId} to project {ProjectId}", 
-                userName, user?.Id, leaderId, projectId);
-                
-            await _projectService.AssignProjectLeader(projectId, leaderId, user.Id);
+        _logger.LogInformation("Manager {UserName} ({UserId}) is assigning leader {LeaderId} to project {ProjectId}", 
+            userName, user?.Id, leaderId, projectId);
             
-            _logger.LogInformation("Leader {LeaderId} successfully assigned to project {ProjectId} by manager {UserName}", 
-                leaderId, projectId, userName);
-                
-            return RedirectToAction("Details", new { id = projectId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning leader {LeaderId} to project {ProjectId} by manager {UserName} ({UserId})", 
-                leaderId, projectId, userName, user?.Id);
-            throw;
-        }
+        await _projectService.AssignProjectLeader(projectId, leaderId, user.Id);
+        
+        _logger.LogInformation("Leader {LeaderId} successfully assigned to project {ProjectId} by manager {UserName}", 
+            leaderId, projectId, userName);
+            
+        return RedirectToAction("Details", new { id = projectId });
     }
 
     [HttpPost]
@@ -231,39 +195,30 @@ public class ProjectController(IProjectService _projectService,
         var user = await _userManager.GetUserAsync(User);
         var userName = user?.UserName ?? "Unknown";
         
-        try
+        _logger.LogInformation("User {UserName} ({UserId}) is requesting completion for project {ProjectId}", 
+            userName, user?.Id, projectId);
+
+        var project = await _context.Projects.Include(p => p.Leader).FirstOrDefaultAsync(p => p.Id == projectId);
+        if (project == null)
         {
-            _logger.LogInformation("User {UserName} ({UserId}) is requesting completion for project {ProjectId}", 
-                userName, user?.Id, projectId);
-
-            var project = await _context.Projects.Include(p => p.Leader).FirstOrDefaultAsync(p => p.Id == projectId);
-            if (project == null)
-            {
-                _logger.LogWarning("Project {ProjectId} not found when user {UserName} requested completion", 
-                    projectId, userName);
-                return NotFound();
-            }
-
-            if (project.LeaderId != user.Id)
-            {
-                _logger.LogWarning("User {UserName} ({UserId}) attempted to request completion for project {ProjectId} but is not the leader", 
-                    userName, user?.Id, projectId);
-                return Forbid(); 
-            }
-
-            await _projectService.RequestProjectCompletionAsync(projectId);
-            
-            _logger.LogInformation("Project {ProjectId} completion successfully requested by leader {UserName}", 
+            _logger.LogWarning("Project {ProjectId} not found when user {UserName} requested completion", 
                 projectId, userName);
-                
-            return RedirectToAction("Details", new { id = projectId });
+            return NotFound();
         }
-        catch (Exception ex)
+
+        if (project.LeaderId != user.Id)
         {
-            _logger.LogError(ex, "Error requesting completion for project {ProjectId} by user {UserName} ({UserId})", 
-                projectId, userName, user?.Id);
-            throw;
+            _logger.LogWarning("User {UserName} ({UserId}) attempted to request completion for project {ProjectId} but is not the leader", 
+                userName, user?.Id, projectId);
+            return Forbid(); 
         }
+
+        await _projectService.RequestProjectCompletionAsync(projectId);
+        
+        _logger.LogInformation("Project {ProjectId} completion successfully requested by leader {UserName}", 
+            projectId, userName);
+            
+        return RedirectToAction("Details", new { id = projectId });
     }
 
     [HttpPost]
@@ -273,24 +228,15 @@ public class ProjectController(IProjectService _projectService,
         var user = await _userManager.GetUserAsync(User);
         var userName = user?.UserName ?? "Unknown";
         
-        try
-        {
-            _logger.LogInformation("Manager {UserName} ({UserId}) is approving project {ProjectId}", 
-                userName, user?.Id, projectId);
-                
-            await _projectService.ApproveProjectAsync(projectId);
+        _logger.LogInformation("Manager {UserName} ({UserId}) is approving project {ProjectId}", 
+            userName, user?.Id, projectId);
             
-            _logger.LogInformation("Project {ProjectId} successfully approved by manager {UserName}", 
-                projectId, userName);
-                
-            return RedirectToAction("Details", new { id = projectId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving project {ProjectId} by manager {UserName} ({UserId})", 
-                projectId, userName, user?.Id);
-            throw;
-        }
+        await _projectService.ApproveProjectAsync(projectId);
+        
+        _logger.LogInformation("Project {ProjectId} successfully approved by manager {UserName}", 
+            projectId, userName);
+            
+        return RedirectToAction("Details", new { id = projectId });
     }
 
     [HttpPost]
@@ -300,23 +246,14 @@ public class ProjectController(IProjectService _projectService,
         var user = await _userManager.GetUserAsync(User);
         var userName = user?.UserName ?? "Unknown";
         
-        try
-        {
-            _logger.LogInformation("Manager {UserName} ({UserId}) is rejecting completion for project {ProjectId}", 
-                userName, user?.Id, projectId);
-                
-            await _projectService.RejectProjectCompletionAsync(projectId);
+        _logger.LogInformation("Manager {UserName} ({UserId}) is rejecting completion for project {ProjectId}", 
+            userName, user?.Id, projectId);
             
-            _logger.LogInformation("Project {ProjectId} completion successfully rejected by manager {UserName}", 
-                projectId, userName);
-                
-            return RedirectToAction("Details", new { id = projectId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rejecting completion for project {ProjectId} by manager {UserName} ({UserId})", 
-                projectId, userName, user?.Id);
-            throw;
-        }
+        await _projectService.RejectProjectCompletionAsync(projectId);
+        
+        _logger.LogInformation("Project {ProjectId} completion successfully rejected by manager {UserName}", 
+            projectId, userName);
+            
+        return RedirectToAction("Details", new { id = projectId });
     }
 }

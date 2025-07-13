@@ -133,28 +133,19 @@ public class StandaloneTaskController(
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is sending standalone task {TaskId} for approval with submission text length: {TextLength}", 
-                userName, user.Id, taskId, submissionText?.Length ?? 0);
+        _logger.LogInformation("User {UserName} ({UserId}) is sending standalone task {TaskId} for approval with submission text length: {TextLength}", 
+            userName, user.Id, taskId, submissionText?.Length ?? 0);
 
-            // Save submission text
-            await _standaloneTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
+        // Save submission text
+        await _standaloneTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
 
-            // Send for approval
-            await _standaloneTaskService.SendForApprovalAsync(taskId, user.Id);
+        // Send for approval
+        await _standaloneTaskService.SendForApprovalAsync(taskId, user.Id);
 
-            _logger.LogInformation("Standalone task {TaskId} successfully sent for approval by user {UserName}", 
-                taskId, userName);
+        _logger.LogInformation("Standalone task {TaskId} successfully sent for approval by user {UserName}", 
+            taskId, userName);
 
-            return RedirectToAction(nameof(MyTasks));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending standalone task {TaskId} for approval by user {UserName} ({UserId})", 
-                taskId, userName, user.Id);
-            throw;
-        }
+        return RedirectToAction(nameof(MyTasks));
     }
 
     [Authorize(Roles = Roles.Manager)]
@@ -185,24 +176,15 @@ public class StandaloneTaskController(
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is approving standalone task {TaskId}", 
-                managerName, manager.Id, taskId);
+        _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is approving standalone task {TaskId}", 
+            managerName, manager.Id, taskId);
 
-            await _standaloneTaskService.ApproveTaskAsync(taskId, manager.Id);
+        await _standaloneTaskService.ApproveTaskAsync(taskId, manager.Id);
 
-            _logger.LogInformation("Standalone task {TaskId} successfully approved by manager {ManagerName}", 
-                taskId, managerName);
+        _logger.LogInformation("Standalone task {TaskId} successfully approved by manager {ManagerName}", 
+            taskId, managerName);
 
-            return RedirectToAction(nameof(ManagerTasks));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving standalone task {TaskId} by manager {ManagerName} ({ManagerId})", 
-                taskId, managerName, manager.Id);
-            throw;
-        }
+        return RedirectToAction(nameof(ManagerTasks));
     }
 
     [HttpPost]
@@ -219,24 +201,15 @@ public class StandaloneTaskController(
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is rejecting standalone task {TaskId}", 
-                managerName, manager.Id, taskId);
+        _logger.LogInformation("Manager {ManagerName} ({ManagerId}) is rejecting standalone task {TaskId}", 
+            managerName, manager.Id, taskId);
 
-            await _standaloneTaskService.RejectTaskAsync(taskId, manager.Id);
+        await _standaloneTaskService.RejectTaskAsync(taskId, manager.Id);
 
-            _logger.LogInformation("Standalone task {TaskId} successfully rejected by manager {ManagerName}", 
-                taskId, managerName);
+        _logger.LogInformation("Standalone task {TaskId} successfully rejected by manager {ManagerName}", 
+            taskId, managerName);
 
-            return RedirectToAction(nameof(ManagerTasks));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rejecting standalone task {TaskId} by manager {ManagerName} ({ManagerId})", 
-                taskId, managerName, manager.Id);
-            throw;
-        }
+        return RedirectToAction(nameof(ManagerTasks));
     }
 
 

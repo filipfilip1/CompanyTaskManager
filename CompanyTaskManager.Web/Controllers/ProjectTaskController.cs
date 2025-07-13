@@ -44,28 +44,19 @@ public class ProjectTaskController(IProjectTaskService _projectTaskService,
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is sending project task {TaskId} for approval with submission text length: {TextLength}", 
-                userName, user.Id, taskId, submissionText?.Length ?? 0);
+        _logger.LogInformation("User {UserName} ({UserId}) is sending project task {TaskId} for approval with submission text length: {TextLength}", 
+            userName, user.Id, taskId, submissionText?.Length ?? 0);
 
-            // Update submission text
-            await _projectTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
+        // Update submission text
+        await _projectTaskService.UpdateSubmissionTextAsync(taskId, user.Id, submissionText);
 
-            // Send for approval
-            await _projectTaskService.SendForApprovalAsync(taskId, user.Id);
+        // Send for approval
+        await _projectTaskService.SendForApprovalAsync(taskId, user.Id);
 
-            _logger.LogInformation("Project task {TaskId} successfully sent for approval by user {UserName}", 
-                taskId, userName);
+        _logger.LogInformation("Project task {TaskId} successfully sent for approval by user {UserName}", 
+            taskId, userName);
 
-            return RedirectToAction(nameof(EmployeeTaskDetails), new { taskId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending project task {TaskId} for approval by user {UserName} ({UserId})", 
-                taskId, userName, user.Id);
-            throw;
-        }
+        return RedirectToAction(nameof(EmployeeTaskDetails), new { taskId });
     }
 
     [Authorize(Roles = Roles.Manager)]
@@ -95,24 +86,15 @@ public class ProjectTaskController(IProjectTaskService _projectTaskService,
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is approving project task {TaskId}", 
-                userName, user.Id, taskId);
+        _logger.LogInformation("User {UserName} ({UserId}) is approving project task {TaskId}", 
+            userName, user.Id, taskId);
 
-            var id = await _projectTaskService.ApproveProjectTaskAsync(taskId, user.Id);
+        var id = await _projectTaskService.ApproveProjectTaskAsync(taskId, user.Id);
 
-            _logger.LogInformation("Project task {TaskId} successfully approved by user {UserName}", 
-                taskId, userName);
+        _logger.LogInformation("Project task {TaskId} successfully approved by user {UserName}", 
+            taskId, userName);
 
-            return RedirectToAction("Details", "Project", new { id });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving project task {TaskId} by user {UserName} ({UserId})", 
-                taskId, userName, user.Id);
-            throw;
-        }
+        return RedirectToAction("Details", "Project", new { id });
     }
 
     [HttpPost]
@@ -128,24 +110,15 @@ public class ProjectTaskController(IProjectTaskService _projectTaskService,
             return Forbid();
         }
 
-        try
-        {
-            _logger.LogInformation("User {UserName} ({UserId}) is rejecting project task {TaskId}", 
-                userName, user.Id, taskId);
+        _logger.LogInformation("User {UserName} ({UserId}) is rejecting project task {TaskId}", 
+            userName, user.Id, taskId);
 
-            var projectId = await _projectTaskService.RejectProjectTaskAsync(taskId, user.Id);
+        var projectId = await _projectTaskService.RejectProjectTaskAsync(taskId, user.Id);
 
-            _logger.LogInformation("Project task {TaskId} successfully rejected by user {UserName}", 
-                taskId, userName);
+        _logger.LogInformation("Project task {TaskId} successfully rejected by user {UserName}", 
+            taskId, userName);
 
-            return RedirectToAction("Details", "Project", new { projectId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rejecting project task {TaskId} by user {UserName} ({UserId})", 
-                taskId, userName, user.Id);
-            throw;
-        }
+        return RedirectToAction("Details", "Project", new { projectId });
     }
 
     [Authorize(Roles = Roles.Manager)]
