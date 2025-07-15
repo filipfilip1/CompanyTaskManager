@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CompanyTaskManager.Application\CompanyTaskManager.Application.csproj" />
+    <ProjectReference Include="..\CompanyTaskManager.Data\CompanyTaskManager.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

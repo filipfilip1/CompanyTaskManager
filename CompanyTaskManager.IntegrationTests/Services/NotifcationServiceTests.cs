@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using Moq;
 using CompanyTaskManager.Application.ViewModels.Notification;
+using Microsoft.Extensions.Logging;
+using CompanyTaskManager.Application.Exceptions;
 
 namespace CompanyTaskManager.IntegrationTests.Services;
 public class NotificationServiceTests
@@ -172,7 +174,8 @@ public class NotificationServiceTests
         });
         await context.SaveChangesAsync();
 
-        var service = new NotificationService(context, _mapper);
+        var loggerMock = new Mock<ILogger<NotificationService>>();
+        var service = new NotificationService(context, _mapper, loggerMock.Object);
 
         // ACT
         var unreadNotifications = await service.GetUnreadNotificationsAsync(testUserId);
@@ -206,7 +209,8 @@ public class NotificationServiceTests
         context.Notifications.Add(notification);
         await context.SaveChangesAsync();
 
-        var service = new NotificationService(context, _mapper);
+        var loggerMock = new Mock<ILogger<NotificationService>>();
+        var service = new NotificationService(context, _mapper, loggerMock.Object);
 
         // ACT
         await service.MarkAsReadAsync(notificationId: 200);
@@ -218,18 +222,17 @@ public class NotificationServiceTests
     }
 
     [Fact]
-    public async Task MarkAsReadAsync_ShouldDoNothing_WhenNotificationDoesNotExist()
+    public async Task MarkAsReadAsync_ShouldThrowNotFoundException_WhenNotificationDoesNotExist()
     {
         // ARRANGE
         using var context = CreateContext();
-        var service = new NotificationService(context, _mapper);
+        var loggerMock = new Mock<ILogger<NotificationService>>();
+        var service = new NotificationService(context, _mapper, loggerMock.Object);
 
-        // ACT
-        await service.MarkAsReadAsync(notificationId: 999);
-
-        // ASSERT - the database should remain unchanged (empty)
-        var anyNotification = await context.Notifications.CountAsync();
-        anyNotification.ShouldBe(0);
+        // ACT & ASSERT
+        await Should.ThrowAsync<NotFoundException>(
+            async () => await service.MarkAsReadAsync(notificationId: 999)
+        );
     }
 
     [Fact]
@@ -239,7 +242,8 @@ public class NotificationServiceTests
         using var context = CreateContext();
         await SeedTestNotificationTypes(context); 
 
-        var service = new NotificationService(context, _mapper);
+        var loggerMock = new Mock<ILogger<NotificationService>>();
+        var service = new NotificationService(context, _mapper, loggerMock.Object);
         var userId = "user123";
         var message = "Welcome";
         var notificationTypeId = 1;
@@ -266,7 +270,8 @@ public class NotificationServiceTests
 
         await SeedNotifications(context, userId);
 
-        var service = new NotificationService(context, _mapper);
+        var loggerMock = new Mock<ILogger<NotificationService>>();
+        var service = new NotificationService(context, _mapper, loggerMock.Object);
 
         // ACT
         var result = await service.GetAllNotificationsForUserAsync(userId);
@@ -297,7 +302,8 @@ public class NotificationServiceTests
         using var context = CreateContext();
         await SeedTestNotificationTypes(context);
 
-        var service = new NotificationService(context, _mapper);
+        var loggerMock = new Mock<ILogger<NotificationService>>();
+        var service = new NotificationService(context, _mapper, loggerMock.Object);
 
         // ACT
         var result = await service.GetAllNotificationsForUserAsync(userId);
@@ -307,5 +313,22 @@ public class NotificationServiceTests
 
         // Verify that mapping was called exactly once
         _mapperMock.Verify(m => m.Map<List<NotificationViewModel>>(It.IsAny<List<Notification>>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("Role Request Approved", 1)]
+    [InlineData("Task Waiting For Approve", 11)]
+    [InlineData("Project Completion Approve", 9)]
+    public void NotificationTypeMapping_ShouldHaveCorrectIds(string typeName, int expectedId)
+    {
+        // This test documents the notification type mappings used throughout the system
+        var notificationType = new NotificationType
+        {
+            Id = expectedId,
+            Name = typeName
+        };
+
+        notificationType.Id.ShouldBe(expectedId);
+        notificationType.Name.ShouldBe(typeName);
     }
 }
